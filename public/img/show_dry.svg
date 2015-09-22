@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<svg width="205" height="285" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+ <title>queen of diamonds</title>
+ <g>
+  <title>Layer 1</title>
+  <rect stroke-width="0" ry="7" rx="7" id="svg_1" height="280" width="200" y="2.566406" x="2.5" stroke="#000000" fill="#000000"/>
+  <text transform="rotate(30.7105, 125.966, 71.656) matrix(1.55092, -8.48121e-09, 1.95231e-08, 1.43835, -207.159, -162.721)" xml:space="preserve" text-anchor="middle" font-family="Serif" font-size="32" id="svg_2" y="177.457746" x="212.272708" stroke-width="0" stroke="#ffffff" fill="#ffffff" font-weight="bold">Show</text>
+  <text xml:space="preserve" text-anchor="middle" font-family="Serif" font-size="147" id="svg_3" y="244" x="138" stroke-width="0" stroke="#fcf9f9" fill="#ffffff">&#9824;</text>
+  <text id="svg_4" transform="rotate(30.7105, 87.3468, 120.704) matrix(1.55092, -8.48121e-09, 1.95231e-08, 1.43835, -256.159, -98.721)" xml:space="preserve" text-anchor="middle" font-family="Serif" font-size="32" y="164.943396" x="219.365259" stroke-width="0" stroke="#ffffff" fill="#ffffff" font-weight="bold">Dry</text>
+ </g>
+</svg>

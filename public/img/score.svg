@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<svg width="205" height="285" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 210 500">
+ <g>
+  <title>Layer 1</title>
+  <rect stroke-width="8" ry="62" rx="62" id="svg_1" height="280" width="200" y="2.56641" x="3.5" stroke="#0000b7" fill="#007fff"/>
+  <text transform="rotate(180, 109.005, 143.467) matrix(2.879, 0, 0, 3.02174, -698.352, -363.92)" xml:space="preserve" text-anchor="middle" font-family="Serif" font-size="39" id="score" y="181.128635" x="280.427725" stroke-width="0" stroke="#ffffff" fill="#ffffff" font-weight="bold">0</text>
+  <text transform="rotate(180, 50.5, 34)" xml:space="preserve" text-anchor="middle" font-family="Serif" font-size="57" id="games" y="53" x="50.5" stroke-width="0" stroke="#ffffff" fill="#ffffff">0</text>
+ </g>
+</svg>

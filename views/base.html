@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/external/jquery.js"></script>
+<script src="js/external/jquery-ui.js"></script>
+<script src="js/external/bootstrap.js"></script>
+<script src="js/external/jquery.corners.js"></script>
+<script src="js/external/jquery.emoticons.js"></script>
+<script src="js/external/dateFormat.js"></script>
+<script src="js/external/sprintf.js"></script>
+<script>
+$(document).ready(function(){
+  window.socket = io.connect('/');
+  console.log('{{ fish }}');
+  socket.on('connect', function () {
+    socket.emit('set player', {pk: '{{ player.pk }}', name: '{{ player.name }}',
+      remoteAvatar: '{{ player.remoteAvatar }}'});
+  });
+  {% block readyJs %}
+  {% endblock %}
+});
+</script>
+{% block js %}
+{% endblock %}
+{% block css %}
+{% endblock %}
+<link href="css/external/bootstrap.css" rel="stylesheet">
+<link href="css/external/jquery-ui.css" rel="stylesheet">
+<link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+	<div class="container rounded-border-square-top main" style="height: 550px; overflow: visible;">
+		<div class="navbar navbar-static-top">
+			<div id="navbar" class="navbar-inner" style="margin-bottom: 15px; height: 40px; overflow: visible;">
+				<div class="container">
+					<ul class="nav pull-right" style="margin-right: 25px">
+						<li><a href="#"><i class="icon-user"></i></a></li>
+						<li><a href="#"><i class="icon-cog"></i></a></li>
+					</ul>
+					<ul class="nav pull-left">
+				  <li><a href="/" style="padding: 0px; margin-top: -15px"><img src="img/spade.svg"></a></li>
+	        </ul>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="span3">
+	      {% block sidebar %}{% endblock %}
+	    </div>
+			<div class="span9" id="bodyDiv">
+				{% block body %}{% endblock %}
+			</div>
+		</div>
+	</div>
+	<div class="footer">
+		<p>Spargame Copyright (c) 2015</p>
+	</div>
+</body>
+</html>
