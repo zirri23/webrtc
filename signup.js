@@ -33,16 +33,7 @@ exports.initSignups = function(env, models) {
   function(accessToken, refreshToken, profile, done) {
     models.Player.findOrCreate({where: { remoteId: profile.id }}).spread(
         function(player, created) {
-          setRemoteAvatar(player, profile, done);
+          return done(null, player);
         });
   }));
 };
-
-function setRemoteAvatar(player, profile, done) {
-  player.createMetadatum({
-    key: 'remoteAvatar',
-    value: profile._json.image.url
-  }).then(function(){
-    return done(null, player);
-  });
-}

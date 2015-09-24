@@ -15,21 +15,6 @@ module.exports = function(sequelize, DataTypes) {
           constraints: false,
           as: "game"
         });
-        Metadata.belongsTo(models.Player, {
-          foreignKey: 'entityId',
-          constraints: false,
-          as: "player"
-        });
-        Metadata.belongsTo(models.GamePlayer, {
-          foreignKey: 'entityId',
-          constraints: false,
-          as: "gamePlayer"
-        });
-        Metadata.belongsTo(models.Play, {
-          foreignKey: 'entityId',
-          constraints: false,
-          as: "play"
-        });
       }
     },
     instanceMethods: {

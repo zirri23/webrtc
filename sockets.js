@@ -14,9 +14,14 @@ function handle(server, cookieParser, sessionStore, sessionSecret) {
   }));
   
   io.sockets.on('connection', function (socket){
+    console.log(socket.request.user.id + " connected");
+    
     var userList = passportSocketIo.filterSocketsByUser(io, function(user){
       return user.id === socket.request.user.id;
     });
+    
+    console.log(socket.request.user.id +
+        ' is connected ' + userList.length + " times");
     
     socket.on('message', function (message) {
       console.log('Got message: ', message);
@@ -28,10 +33,12 @@ function handle(server, cookieParser, sessionStore, sessionSecret) {
 }
 
 function onAuthorizeSuccess(data, accept){
+  console.log('successful connection to socket.io' + data);
   accept();
 }
 
 function onAuthorizeFail(data, message, error, accept){
+  console.log('unsuccessful connection to socket.io' + data);
   accept(new Error(message));
 }
 

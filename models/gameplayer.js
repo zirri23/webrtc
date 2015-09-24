@@ -7,17 +7,6 @@ module.exports = function(sequelize, DataTypes) {
       unique: true
     },
     name : DataTypes.STRING
-  }, {
-    classMethods : {
-      associate : function(models) {
-        GamePlayer.hasMany(models.Play);
-        GamePlayer.hasMany(models.Metadata, {
-          foreignKey: "entityId",
-          constraints: false,
-          scope: {entity: "GamePlayer"}
-        });
-      }
-    }
   });
   return GamePlayer;
 };

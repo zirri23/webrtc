@@ -13,7 +13,6 @@
 <script>
 $(document).ready(function(){
   window.socket = io.connect('/');
-  console.log('{{ fish }}');
   socket.on('connect', function () {
     socket.emit('set player', {pk: '{{ player.pk }}', name: '{{ player.name }}',
       remoteAvatar: '{{ player.remoteAvatar }}'});

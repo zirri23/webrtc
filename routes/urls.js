@@ -11,7 +11,6 @@ function route(app, models, io) {
   app.get('/login', authRoutes.login);
   app.get('/', ensureLoggedIn('/login'), routes.index);
   app.post('/createGame', ensureLoggedIn('/login'), gameRoutes.createGame);
-  app.get('/playGame', ensureLoggedIn('/login'), gameRoutes.playGame);
 }
 
 exports.route = route;

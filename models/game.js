@@ -10,10 +10,8 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods : {
       associate : function(models) {
-        Game.belongsToMany(models.Player,
-            {through: models.GamePlayer, foreignKey: "gameId"});
+        Game.belongsToMany(models.Player, {through: models.GamePlayer});
         Game.belongsTo(models.Player, {as: "creator"});
-        Game.hasMany(models.Play);
         Game.hasMany(models.Metadata, {
           foreignKey: "entityId",
           constraints: false,

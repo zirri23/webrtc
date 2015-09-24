@@ -2,7 +2,6 @@
  * GET home page.
  */
 var gameRoutes = require('./gameRoutes');
-var expand = require('./dbUtils').expand;
 
 exports.setIo = function(i) {
   io = i;
@@ -15,11 +14,7 @@ exports.setModels = function(m) {
 };
 
 exports.index = function(req, res) {
-  expand(req.user, function(user) {
-    console.log(user);
-    res.render('home/index.html', {
-      player : user,
-      csrfToken : req.session._csrf
-    });
+  res.render('home/index.html', {
+    csrfToken : req.session._csrf
   });
 };
