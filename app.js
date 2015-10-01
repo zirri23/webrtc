@@ -10,7 +10,6 @@ var express = require('express')
   , passport = require('passport')
   , socketio = require('socket.io')
   , sockets = require('./sockets')
-  , models = require("./models")
   , signup = require("./signup")
   , swig = require("swig")
   , cookieParser = require('cookie-parser')
@@ -53,20 +52,19 @@ if ('dev' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-models.sequelize.sync({force : true}).then(
-    function () {
-      var server = http.createServer(app);
-      
-      var io = sockets.handle(
-          server, cookieParser, sessionStore, sessionSecret);
-      
-      server.listen(app.get('port'), function() {
-        console.log('Express server listening on port ' + app.get('port') +
-            " in " + env + " mode.");
-      });
-      
-      signup.initSignups(env, models);
-      
-      urls.route(app, models, io);
+var Bookshelf = require('./models/models');
+
+var server = http.createServer(app);
+
+var io = sockets.handle(
+    server, cookieParser, sessionStore, sessionSecret);
+
+server.listen(app.get('port'), function() {
+  console.log('Express server listening on port ' + app.get('port') +
+      " in " + env + " mode.");
 });
+
+signup.initSignups(env, Bookshelf);
+
+urls.route(app, Bookshelf, io);
 

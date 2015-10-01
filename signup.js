@@ -1,4 +1,5 @@
 var passport = require('passport');
+var uuid = require('node-uuid');
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 var GOOGLE_CLIENT_ID = {
@@ -14,14 +15,18 @@ var GOOGLE_CALLBACK_URL = {
   prod: "http://www.spargame.com/auth/google/oauth2callback"
 };
 
-exports.initSignups = function(env, models) {
+exports.initSignups = function(env, Bookshelf) {
   passport.serializeUser(function(player, done) {
+  	console.log("serializing user: " + player.id);
     done(null, player.id);
   });
 
   passport.deserializeUser(function(id, done) {
-    models.Player.findById(id).then(function (player, found) {
-      done(null, player);
+  	console.log("deserializing user: " + id);
+  	Bookshelf.Player.where('id', id).fetch().then(function (player) {
+      done(null, player.id);
+    }).catch(function(err) {
+    	console.error(err);
     });
   });
   
@@ -31,9 +36,18 @@ exports.initSignups = function(env, models) {
     callbackURL: GOOGLE_CALLBACK_URL[env],
   },
   function(accessToken, refreshToken, profile, done) {
-    models.Player.findOrCreate({where: { remoteId: profile.id }}).spread(
-        function(player, created) {
-          return done(null, player);
-        });
+  	console.log("profile: " + JSON.stringify(profile));
+    Bookshelf.Player.where({ remoteId: profile.id }).fetch().then(function(player) {
+    	if (player) {
+    		done(null, player);
+    	} else {
+    		Bookshelf.Player.forge({remoteId: profile.id, uuid: uuid.v4(), name: profile.displayName}).save().then(function(player) {
+    			console.log("created user: " + player.id);
+    			done(null, player);
+    		});
+    	}
+    }).catch(function(err) {
+    	console.log(err);
+    });
   }));
 };
