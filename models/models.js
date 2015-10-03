@@ -22,8 +22,31 @@ var knex = require('./knex');
 var bookshelf = require('bookshelf')(knex);
 
 var Player = bookshelf.Model.extend({
-  tableName: 'players'
+  tableName: 'players',
+  gamePlayers: function() {
+  	return this.belongsToMany(GamePlayer);
+  },
 });
 
-module.exports = {Player: Player}
+var Game = bookshelf.Model.extend({
+	tableName: 'games',
+	gamePlayers: function() {
+		return this.belongsToMany(GamePlayer);
+	},
+	creator: function() {
+		return this.belongsTo(Player);
+	}
+});
+
+var GamePlayer = bookshelf.Model.extend({
+	tableName: 'gamePlayers',
+	game: function() {
+		return this.belongsTo(Player);
+	},
+	player: function() {
+		return this.belongsTo(Game);
+	}
+});
+
+module.exports = {Player: Player, Game: Game, GamePlayer: GamePlayer};
 

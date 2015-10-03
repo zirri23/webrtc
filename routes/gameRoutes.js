@@ -7,11 +7,11 @@ exports.setIo = function(i) {
 };
 
 exports.createGame = function(req, res) {
-  models.Game.create({creator: req.user.id}).then(function(game, created) {
+  models.Game.forge({creator: req.user.id}).then(function(game, created) {
     console.log("Created a game with id: " + game.uuid);
     console.log(game);
-    game.createMetadatum({key: "boob", value: "boob"}).then(function(cr, crea) {
-      console.log("Game has metadata: " + cr);
-    });
+//    game.createMetadatum({key: "boob", value: "boob"}).then(function(cr, crea) {
+//      console.log("Game has metadata: " + cr);
+//    });
   });
 };
