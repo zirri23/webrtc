@@ -2,7 +2,7 @@
 {% block sidebar %}
 <div class="menu" style="margin-top: 20px;">
   <ul class="nav nav-tabs nav-stacked">
-    <li><a id="singlePlayer" href="#">Single Player</a></li>
+    <li><a id="singlePlayer" href="/createGame">Single Player</a></li>
     <li><a href="#">Browse Games</a></li>
     <li><a href="#">Create Game</a></li>
   </ul>
@@ -13,15 +13,6 @@
 {% block js %}
 <script>
 $(document).ready(function() {
-  $("#singlePlayer").click(function(){
-    $.post("/createGame/", {_csrf: '{{ csrfToken }}'})
-      .success(function(data) {
-        console.log(data);
-      })
-      .error(function(error) {
-        console.log(error);
-      });
-  });
 });
 </script>
 {% endblock %}

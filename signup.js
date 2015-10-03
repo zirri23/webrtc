@@ -24,7 +24,7 @@ exports.initSignups = function(env, Bookshelf) {
   passport.deserializeUser(function(id, done) {
   	console.log("deserializing user: " + id);
   	Bookshelf.Player.where('id', id).fetch().then(function (player) {
-      done(null, player.id);
+      done(null, player);
     }).catch(function(err) {
     	console.error(err);
     });

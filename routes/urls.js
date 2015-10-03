@@ -10,7 +10,8 @@ function route(app, Bookshelf, io) {
   app.get('/auth/google/oauth2callback', authRoutes.authenticateGoogleCallback);
   app.get('/login', authRoutes.login);
   app.get('/', ensureLoggedIn('/login'), routes.index);
-  app.post('/createGame', ensureLoggedIn('/login'), gameRoutes.createGame);
+  app.get('/playGame', ensureLoggedIn('/login'), gameRoutes.playGame);
+  app.get('/createGame', ensureLoggedIn('/login'), gameRoutes.createGame);
 }
 
 exports.route = route;
