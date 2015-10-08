@@ -1,6 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
+{% extends '../base.html' %}
+{% block js %}
 <script src="/js/external/webrtc.io.js"></script>
 <script>
   // note: make sure hostname available to all connecting clients
@@ -22,9 +21,8 @@
 
   // more rtc callbacks are available
 </script>
-</head>
-<body>
-	<video id="local" autoplay="autoplay"></video>
-	<video id="remote" autoplay="autoplay"></video>
-</body>
-</html>
+{% endblock %}
+{% block body %}
+  <video id="local" autoplay="autoplay"></video>
+  <video id="remote" autoplay="autoplay"></video>
+{% endblock %}

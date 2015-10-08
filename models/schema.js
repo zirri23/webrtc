@@ -1,10 +1,10 @@
 var Schema = {
   players: {
-  	  id       : {type: "increments", nullable: false, primary: true},
-	  uuid     : {type: "uuid", nullable: false, unique: true},
-	  name     : {type: "string", nullable: false},
-	  remoteId : {type: "string", nullable: false},
-	  online   : {type: "boolean", defaultTo: false, nullable: false }
+  	  id        : {type: "increments", nullable: false, primary: true},
+	  uuid      : {type: "uuid", nullable: false, unique: true},
+	  name      : {type: "string", nullable: false},
+	  remote_id : {type: "string", nullable: false},
+	  online    : {type: "boolean", defaultTo: false, nullable: false }
   },
 
 	games: {
@@ -15,8 +15,8 @@ var Schema = {
 	
 	gamePlayers: {
 		id       : {type: "increments", nullable: false, primary: true},
-		game_id  : {type: "integer"},
-		player_id: {type: "integer"},
+		game_id  : {type: "integer", nullable: false},
+		player_id: {type: "integer", nullable: false},
 	    uuid     : {type: "uuid", nullable: false, unique: true},
 	}
 }

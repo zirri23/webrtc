@@ -11,21 +11,28 @@ exports.setIo = function(i) {
 exports.createGame = function(req, res) {
   models.Game.forge({creator: req.user.id, uuid: uuid.v4()}).save().then(function (game) {
     console.log("Created a game with id: " + game.get('uuid'));
-//    game.createMetadatum({key: "boob", value: "boob"}).then(function(cr, crea) {
-//      console.log("Game has metadata: " + cr);
-//    });
-    res.redirect("/playGame?gameId=" + game.get('uuid'));
+    models.GamePlayer.forge({
+      game_id: game.get('id'),
+      player_id: req.user.id,
+      uuid: uuid.v4()
+    }).save().then(function(gameplayer) {
+      res.redirect("/playGame?gameId=" + game.get('uuid'));
+    }).catch(function(err) {
+      res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
+    }).catch(function(err) {
+      res.send(500, "Unable to create Game: " + JSON.stringify(err));
+    });
   });
 };
 exports.playGame = function(req, res) {
   var gameId = req.query.gameId;
   var playerId = req.user.id;
   var game = models.Game.where({uuid: gameId}).fetch().then(function(game) {
-    models.GamePlayer.where({gameId: game.get("id"), playerId: playerId}).fetch().then(function(gamePlayer) {
+    models.GamePlayer.where({game_id: game.get("id"), player_id: playerId}).fetch().then(function(gamePlayer) {
       res.render('game/video.html', {
-        //game: game,
-        //gamePlayer: gamePlayer,
-        //player: player,
+        game: game,
+        gamePlayer: gamePlayer,
+        player: req.user,
         csrfToken: req.session._csrf});
     }).catch(function(err) {
       res.send(500, "GamePlayer not found: " + JSON.stringify(err));
