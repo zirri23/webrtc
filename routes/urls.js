@@ -12,6 +12,7 @@ function route(app, Bookshelf, io) {
   app.get('/', ensureLoggedIn('/login'), routes.index);
   app.get('/playGame', ensureLoggedIn('/login'), gameRoutes.playGame);
   app.get('/createGame', ensureLoggedIn('/login'), gameRoutes.createGame);
+  app.post('/queryGames', ensureLoggedIn('/login'), gameRoutes.queryGames);
 }
 
 exports.route = route;

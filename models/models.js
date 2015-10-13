@@ -23,15 +23,17 @@ var bookshelf = require('bookshelf')(knex);
 
 var Player = bookshelf.Model.extend({
   tableName: 'players',
+  hasTimestamps: ['created_at', 'updated_at'],
   gamePlayers: function() {
-  	return this.belongsToMany(GamePlayer);
+  	return this.hasMany(GamePlayer);
   },
 });
 
 var Game = bookshelf.Model.extend({
 	tableName: 'games',
+    hasTimestamps: ['created_at', 'updated_at'],
 	gamePlayers: function() {
-		return this.belongsToMany(GamePlayer);
+		return this.hasMany(GamePlayer);
 	},
 	creator: function() {
 		return this.belongsTo(Player);
@@ -40,6 +42,7 @@ var Game = bookshelf.Model.extend({
 
 var GamePlayer = bookshelf.Model.extend({
 	tableName: 'gamePlayers',
+    hasTimestamps: ['created_at', 'updated_at'],
 	game: function() {
 		return this.belongsTo(Player);
 	},

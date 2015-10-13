@@ -18,7 +18,5 @@ var envs = {
     }
 }
 var env = process.env.NODE_ENV || 'dev';
-console.log("Env is: " + env);
-console.log("Envs are: " + envs)
 console.log("Starting knex env: " + envs[env]);
 module.exports = require('knex')(envs[env]);

@@ -36,11 +36,11 @@ exports.initSignups = function(env, Bookshelf) {
     callbackURL: GOOGLE_CALLBACK_URL[env],
   },
   function(accessToken, refreshToken, profile, done) {
-    Bookshelf.Player.where({ remoteId: profile.id }).fetch().then(function(player) {
+    Bookshelf.Player.where({ remote_id: profile.id }).fetch().then(function(player) {
     	if (player) {
     		done(null, player);
     	} else {
-    		Bookshelf.Player.forge({remoteId: profile.id, uuid: uuid.v4(), name: profile.displayName}).save().then(function(player) {
+    		Bookshelf.Player.forge({remote_id: profile.id, uuid: uuid.v4(), name: profile.displayName}).save().then(function(player) {
     			console.log("created user: " + player.id);
     			done(null, player);
     		});

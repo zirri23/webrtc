@@ -1,4 +1,7 @@
 {% extends "../base.html" %}
+{% block css %}
+<link href="css/animations/rainimation.css" rel="stylesheet">
+{% endblock %}
 {% block sidebar %}
 <div class="menu" style="margin-top: 20px;">
   <ul class="nav nav-tabs nav-stacked">
@@ -9,10 +12,21 @@
 </div>
 {% endblock %}
 {% block body %}
+{% include "availableGames.html" %}
+{% include "fallingSpades.html" %}
 {% endblock %}
 {% block js %}
+<script src="js/home/homeAnimations.js"></script>
 <script>
 $(document).ready(function() {
+	$(".falling").draggable();
+	
+	$("#singlePlayer").click(function(){
+	  $.post("/createGame/", {_csrf: '{{ csrfToken }}'})
+			.success(function(data) {
+			  console.log(data);
+			});
+	});
 });
 </script>
 {% endblock %}

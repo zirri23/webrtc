@@ -1,0 +1,58 @@
+{% extends "../base.html" %}
+{% block css %}
+<link href="css/animations/game/flipper.css" rel="stylesheet">
+{% endblock %}
+{% block sidebar %}
+{% include "chat.html" %}
+{% endblock %}
+{% block body %}
+<div class="row">
+    <div id="pos1" class="span3 player-box 3player1 5player2 6player2">
+        <div class="flipper">
+            <div class="front"></div>
+            <div class="back"></div>
+        </div>
+    </div>
+    <div id="pos2" class="span3 player-box 2player1 4player2 6player3">
+        <div class="flipper">
+            <div class="front"></div>
+            <div class="back"></div>
+        </div>
+    </div>
+    <div id="pos3" class="span3 player-box 3player2 5player3 6player4">
+        <div class="flipper">
+            <div class="front"></div>
+            <div class="back"></div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div id="pos4" class="span3 player-box 4player1 5player1 6player1">
+        <div class="flipper">
+            <div class="front"></div>
+            <div class="back"></div>
+        </div></div>
+    <div id="drop" class="span3 play-action">
+    </div>
+    <div id="pos5" class="span3 player-box 4player3 5player4 6player5">
+        <div class="flipper">
+            <div class="front"></div>
+            <div class="back"></div>
+        </div></div>
+</div>
+<div class="row">
+    <div id="show-dry" class="span3 play-action dry-action rounded">
+        <img class="mini-card" src="img/show.svg" style="-webkit-transform: rotateZ(45deg)">
+    </div>
+    <div id="hand" class="span3 hand">
+    </div>
+    <div id="dry" class="span3 play-action dry-action rounded">
+        <img class="mini-card" src="img/dry.svg" style="margin-left: 185px; -webkit-transform: rotateZ(-45deg)">
+    </div>
+</div>
+{% include "elements.html" %}
+{% endblock %}
+{% block readyJs %}
+{% include "../../public/js/game/gameActions.js" %}
+{% include "../../public/js/game/gameNotifications.js" %}
+{% endblock %}

@@ -10,12 +10,13 @@
 <script src="js/external/jquery.emoticons.js"></script>
 <script src="js/external/dateFormat.js"></script>
 <script src="js/external/sprintf.js"></script>
+<script src="js/spargame.js"></script>
 <script>
 $(document).ready(function(){
   window.socket = io.connect('/');
   socket.on('connect', function () {
     socket.emit('set player', {pk: '{{ player.pk }}', name: '{{ player.name }}',
-      remoteAvatar: '{{ player.remoteAvatar }}'});
+        remoteAvatar: '{{ player.remoteAvatar }}'});
   });
   {% block readyJs %}
   {% endblock %}

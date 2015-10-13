@@ -1,0 +1,123 @@
+<div id="gamesHolder" style="position: relative;">
+	<div id="opponent" class="hide" style="position: absolute;">
+		<a><img src="/img/black.png"
+			class="img-circle avatar" data-toggle="tooltip"></a>
+	</div>
+<div id="opponents" class="hide opponents">
+</div>
+</div>
+<div id="myModal" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">x</button>
+    <h3 id="myModalLabel">Join Game</h3>
+  </div>
+  <div class="modal-body">
+    <div id="opponents-holder-modal" style="float: left;"></div>
+    <div id="game-info-modal" style="float: right;">
+	    <p> <span style="font-weight: bold;">Creator: </span><span class="creator">Perry Nelson</span></p>
+	    <p> <span style="font-weight: bold;">Date Created: </span><span class="created_at">Aug 1st 2013</span></p>
+	    <p> <span style="font-weight: bold;">Last Activity: </span><span class="updated_at">Aug 3rd 2013</span></p>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal">Cancel</button>
+    <button id="join-game" class="btn btn-primary">Play</button>
+  </div>
+</div>
+<script>
+$(document).ready(function() {
+  window.games = {};
+	function refreshGames (games) {
+	  $.post("/queryGames/", {_csrf: '{{ csrfToken }}'})
+	   .success(function(games) {
+	     var columns = Math.max(1, Math.ceil(Math.sqrt(games.length)));
+	     $("#gamesHolder").css("margin-left", Math.max(80, 260/columns));
+	     $("#gamesHolder").css("margin-top", 200/columns);
+	     for(var i = 0; i < games.length; i++) {
+	       var game = games[i];
+	       window.games[game.uuid] = game;
+
+	       var opponentsHolder = cloneById("opponents", sprintf("opponents_%s", game.uuid));
+	       opponentsHolder.attr("name", game.uuid);
+	       for (var gp = 0; gp < 6; gp ++) {
+	         if (gp < game.gamePlayers.length) {
+		         var opponent = createOpponent(game, game.gamePlayers[gp]);
+		         opponent.addClass("opponent");
+		         opponent.width(110/(columns));
+		         if (game.gamePlayers[gp].player.uuid == "{{ player.uuid }}") {
+		           opponent.css("color", "#CC6600");
+		         }
+             opponent.attr("name", game.gamePlayers[gp].uuid);
+	           opponentsHolder.append(opponent);
+	         } else {
+            var opponent = cloneById("opponent", sprintf("opponent_%s_%s", game.uuid, gp));
+            opponent.find("img").attr("src", "img/blank.png");
+            opponent.addClass("opponent");
+            opponent.width(110/(columns));
+            opponent.show();
+            opponentsHolder.append(opponent);
+	         }
+	       }
+	       opponentsHolder.show();
+	       var title = cloneById("opponent", sprintf("title_%s", game.uuid));
+	       title.find("img").addClass("title");
+	       title.show();
+	       opponentsHolder.append(title);
+  	     arrangeInCircle(opponentsHolder.find(".opponent"), opponentsHolder, (120/columns), (220 / (columns/2.7)) * (i % columns), (220 / (columns/2)) * Math.floor(i / columns), title);
+	       $("#gamesHolder").append(opponentsHolder);
+
+	       opponentsHolder.hover(function() {
+	         var currOpponents = $(this);
+	         $(".opponents").each(function() {
+		         if ($(this).attr("id") != currOpponents.attr("id")) {
+		           $(this).animate({"opacity": 0.4});
+		         } else {
+		           $(this).find(".title").animate({"opacity": 0.2});
+		         }
+	         });
+	       }, function() {
+	         $(".opponents").clearQueue();
+	         $(".opponents").find(".title").clearQueue();
+	         $(".opponents").animate({"opacity": 1.0});
+	         $(".opponents").find(".title").animate({"opacity": 1.0});
+	       });
+	       opponentsHolder.click(function() {
+	         var currOpponents = $(this);
+	         $("#opponents-holder-modal").empty();
+	         var game = window.games[currOpponents.attr("name")];
+	         $("#game-info-modal").find(".creator").text(game.creator.name);
+	         $("#game-info-modal").find(".created_at").text(new Date(game.created_at).format(("dd mmm, hh:MM")));
+	         $("#game-info-modal").find(".updated_at").text(new Date(game.updated_at).format(("dd mmm, hh:MM")));
+	         for (var modalGp = 0; modalGp < game.gamePlayers.length; modalGp++) {
+	           var opponent = createOpponent(game, game.gamePlayers[modalGp]);
+	           opponent.css("margin-left", 50 * modalGp);
+	           opponent.find("img").css("width", 40);
+	           if (game.gamePlayers[modalGp].player.uuid == "{{ player.uuid }}") {
+              opponent.css("color", "#CC6600");
+             }
+	           $("#opponents-holder-modal").append(opponent);
+	         }
+	         $('#myModal').find("#join-game").click(function() {
+	           window.location = sprintf("/joinGame?gameId=%s", game.uuid);
+	         });
+	         $('#myModal').modal("show");
+	       });
+
+         $(sprintf("#join_%s", game.uuid)).click(function(){
+             console.log("room change");
+         });
+         }
+	   });
+	}
+
+	function createOpponent(game, gamePlayer) {
+	 var opponent = cloneById("opponent", sprintf("opponent_%s_%s", game.uuid, gamePlayer.uuid));
+   opponent.find("img").attr("src", gamePlayer.player.remoteAvatar || DEFAULT_PROFILE_PIC);
+   opponent.find("img").attr("title", gamePlayer.player.name);
+   opponent.show();
+   return opponent;
+	}
+	
+	refreshGames();
+});
+</script>

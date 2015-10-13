@@ -1,0 +1,113 @@
+<div class="hide">
+    <div id="leftChat"
+         style="margin: 15px; margin-left: 10px; margin-top: 10px">
+        <img class="img-polaroid chat-avatar hide" src="{{ player.remoteAvatar }}"
+             style="width: 30px; position: relative; z-index: 1">
+        <div class="shadowy chat-content hide"
+             style="width: 137px; padding: 5px; padding-top: 0px; padding-bottom: 0px;
+                        margin-top: -20px; margin-left: 20px">
+            <span class="chat-sender word-wrap" style="margin-left: 20px"><small><b>Me: </b></small></span>
+            <small><div class="chat-text word-wrap" style="margin-left: 20px; margin-bottom: 0px"></div></small>
+            <span class="chat-time muted" style="margin-left: 20px"></span>
+        </div>
+    </div>
+    <div id="rightChat"
+         style="margin: 15px; margin-left: 10px; margin-top: 10px">
+        <div class="shadowy chat-content hide"
+             style="width: 137px; padding: 5px; padding-top: 0px; padding-bottom: 0px;">
+            <b><small><span class="chat-sender word-wrap"></span>: </small></b>
+            <small><div class="chat-text word-wrap" style="margin-right: 20px;
+      margin-bottom: 0px"></div></small>
+            <span class="chat-time muted" style="margin-right: 20px"></span>
+        </div>
+        <img class="img-polaroid chat-avatar hide" src="{{ player.remoteAvatar }}"
+             style="width: 30px; margin-left: 131px; margin-top: -20px">
+    </div>
+    <table id="playerBox" class="table table-no-border">
+        <tr>
+            <td >
+                <div id="cardHolder" style="margin-left: 83px; margin-top: -20px; margin-bottom: 20px">
+                    <div class="card1 player-card hide">
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-warning hide dry dry">Dry</span>
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-important hide show-dry">Show</span>
+                        <img src="img/cards/svg/back.svg">
+                    </div>
+                    <div class="card2 player-card hide">
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-warning hide dry">Dry</span>
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-important hide show-dry">Show</span>
+                        <img src="img/cards/svg/back.svg">
+                    </div>
+                    <div class="card3 player-card hide">
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-warning hide dry">Dry</span>
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-important hide show-dry">Show</span>
+                        <img src="img/cards/svg/back.svg">
+                    </div>
+                    <div class="card4 player-card hide">
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-warning hide dry">Dry</span>
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-important hide show-dry">Show</span>
+                        <img src="img/cards/svg/back.svg">
+                    </div>
+                    <div class="card5 player-card hide">
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-warning hide dry">Dry</span>
+                        <span style="position: absolute; margin-top: -20px; width: 31px; text-align: center;" class="dry-badge label label-important hide show-dry">Show</span>
+                        <img src="img/cards/svg/back.svg">
+                    </div>
+                    <img src="img/lead.svg" class="player-sign lead-card">
+                    <img src="img/turn.svg" class="player-sign turn-card">
+                    <object data="img/score.svg" class="player-sign score-card"></object>
+                </div>
+                <div>
+                    <a class="readyButton"><img src="{{ player.remoteAvatar }}" class="img-circle avatar hand-avatar"></a>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div id="board">
+        <table>
+            <tr>
+                <td class="3player1-drops 5player2-drops 6player2-drops">
+                    <div class="player-drop-holder">
+                        <img class="img-polaroid board-pic">
+                        <div class="player-drop-cards"></div>
+                    </div>
+                </td>
+                <td class="2player1-drops 4player2-drops 6player3-drops">
+                    <div class="player-drop-holder">
+                        <img class="img-polaroid board-pic">
+                        <div class="player-drop-cards"></div>
+                    </div>
+                </td>
+                <td class="3player2-drops 5player3-drops 6player4-drops">
+                    <div class="player-drop-holder">
+                        <img class="img-polaroid board-pic">
+                        <div class="player-drop-cards"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="4player1-drops 5player1-drops 6player1-drops">
+                    <div class="player-drop-holder">
+                        <img class="img-polaroid board-pic">
+                        <div class="player-drop-cards"></div>
+                    </div>
+                </td>
+                <td class="2player2-drops 3player3-drops 4player4-drops 5player5-drops 6player6-drops">
+                    <div class="player-drop-holder" id="{{ gamePlayer.pk }}-drops">
+                        <img class="img-polaroid board-pic">
+                        <div class="player-drop-cards"></div>
+                    </div>
+                </td>
+                <td class="4player3-drops 5player4-drops 6player5-drops">
+                    <div class="player-drop-holder">
+                        <img class="img-polaroid board-pic">
+                        <div class="player-drop-cards"></div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <a id="deal-button" href="#" class="hide">
+            <img class="mini-card" id="deal-button-img" src="img/buttons/deal.svg">
+        </a>
+    </div>
+    <img class="mini-card" id="drop-card" src="img/cards/queen_of_spades.png" style="position: absolute;">
+</div>
