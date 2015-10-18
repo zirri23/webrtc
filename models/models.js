@@ -27,6 +27,15 @@ var Player = bookshelf.Model.extend({
   gamePlayers: function() {
   	return this.hasMany(GamePlayer);
   },
+  plays: function() {
+    return this.hasMany(Play);
+  },
+  getAllMetadata: function() {
+    return JSON.parse(this.get("metadata"));
+  },
+  getMetadata: function(key) {
+      return JSON.parse(this.get("metadata"))[key];
+  }
 });
 
 var Game = bookshelf.Model.extend({
@@ -35,21 +44,53 @@ var Game = bookshelf.Model.extend({
 	gamePlayers: function() {
 		return this.hasMany(GamePlayer);
 	},
+  plays: function() {
+    return this.hasMany(Play);
+  },
 	creator: function() {
 		return this.belongsTo(Player);
-	}
+	},
+  getAllMetadata: function() {
+    return JSON.parse(this.get("metadata"));
+  },
+  getMetadata: function(key) {
+    return JSON.parse(this.get("metadata"))[key];
+  }
 });
 
 var GamePlayer = bookshelf.Model.extend({
 	tableName: 'gamePlayers',
-    hasTimestamps: ['created_at', 'updated_at'],
+  hasTimestamps: ['created_at', 'updated_at'],
 	game: function() {
 		return this.belongsTo(Player);
 	},
 	player: function() {
 		return this.belongsTo(Game);
-	}
+	},
+  plays: function() {
+    return this.hasMany(Play);
+  },
+  getAllMetadata: function() {
+    return JSON.parse(this.get("metadata"));
+  },
+  getMetadata: function(key) {
+    return JSON.parse(this.get("metadata"))[key];
+  }
 });
+
+var Play = bookshelf.Model.extend({
+  tableName: "plays",
+  hasTimestamps: ['created_at', 'updated_at'],
+  game: function() {
+    return this.belongsTo(Game);
+  },
+  player: function() {
+    return this.belongsTo(Player);
+  },
+  gamePlayer: function() {
+    return this.belongsTo(GamePlayer);
+  },
+})
 
 module.exports = {Player: Player, Game: Game, GamePlayer: GamePlayer};
 

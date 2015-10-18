@@ -1,10 +1,10 @@
-socket.on(sprintf("room change/%s", "{{ game.pk }}"), function(message) {
-  gamePlayerPkToGamePlayer[message.gamePlayer.pk] = message.gamePlayer;
+socket.on(sprintf("room change/%s", "{{ game.uuid }}"), function(message) {
+  gamePlayerPkToGamePlayer[message.gamePlayer.uuid] = message.gamePlayer;
   arrangePlayers();
 });
 
-socket.on(sprintf("chat message/%s", "{{ game.pk }}"), function(message) {
-  var sentByCurrentUser =  (message.senderPk == "{{ gamePlayer.pk }}");
+socket.on(sprintf("chat message/%s", "{{ game.uuid }}"), function(message) {
+  var sentByCurrentUser =  (message.senderPk == "{{ gamePlayer.uuid }}");
   var direction = sentByCurrentUser ? "left" : "right";
   var chatBubble = $(sprintf("#%sChat", direction)).clone();
   chatBubble.removeAttr("id");
@@ -23,7 +23,7 @@ socket.on(sprintf("chat message/%s", "{{ game.pk }}"), function(message) {
 });
 
 function sendPlayToChat(message) {
-  var sentByCurrentUser =  (message.senderPk == "{{ gamePlayer.pk }}");
+  var sentByCurrentUser =  (message.senderPk == "{{ gamePlayer.uuid }}");
   var direction = sentByCurrentUser ? "left" : "right";
   var chatBubble = $(sprintf("#%sChat", direction)).clone();
   chatBubble.removeAttr("id");
@@ -40,7 +40,7 @@ function sendPlayToChat(message) {
   $("#messages").animate({scrollTop: $("#messages").get(0).scrollHeight}, 500);
 }
 
-socket.on(sprintf("deal/%s", "{{ game.pk }}"), function(message) {
+socket.on(sprintf("deal/%s", "{{ game.uuid }}"), function(message) {
   game.status = "dealt";
   for (gamePlayer in gamePlayerPkToGamePlayer) {
     gamePlayerPkToGamePlayer[gamePlayer].status = "active";
@@ -53,7 +53,7 @@ socket.on(sprintf("deal/%s", "{{ game.pk }}"), function(message) {
   updateGameStatus(message.details.turnGamePlayer, message.details.turnGamePlayer, message.senderPk);
 });
 
-socket.on(sprintf("drop/%s", "{{ game.pk }}"), function(message) {
+socket.on(sprintf("drop/%s", "{{ game.uuid }}"), function(message) {
   processDrop(message.senderPk, message.remoteAvatar, message.details.cards);
   updateGameStatus(
       message.details.turnGamePlayer,
@@ -64,15 +64,15 @@ socket.on(sprintf("drop/%s", "{{ game.pk }}"), function(message) {
       message.details.score);
 });
 
-socket.on(sprintf("dry/%s", "{{ game.pk }}"), function(message) {
+socket.on(sprintf("dry/%s", "{{ game.uuid }}"), function(message) {
   processDry(message.senderPk, message.remoteAvatar, message.details.cards, message.type);
 });
 
-socket.on(sprintf("show-dry/%s", "{{ game.pk }}"), function(message) {
+socket.on(sprintf("show-dry/%s", "{{ game.uuid }}"), function(message) {
   processDry(message.senderPk, message.remoteAvatar, message.details.cards, message.type);
 });
 
-socket.on(sprintf("ready/%s", "{{ game.pk }}"), function(message) {
+socket.on(sprintf("ready/%s", "{{ game.uuid }}"), function(message) {
   processReady(message.senderPk, message.remoteAvatar, message.details.cards, message.type);
   sendPlayToChat(message);
 });

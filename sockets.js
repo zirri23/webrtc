@@ -1,5 +1,6 @@
-var socketio = require('socket.io')
-  , passportSocketIo = require("passport.socketio");
+var socketio = require('socket.io');
+var passportSocketIo = require("passport.socketio");
+var util = require("util");
 
 function handle(server, cookieParser, sessionStore, sessionSecret) {
   var io = socketio.listen(server);
@@ -41,5 +42,11 @@ function onAuthorizeFail(data, message, error, accept){
   console.log('unsuccessful connection to socket.io' + data);
   accept(new Error(message));
 }
+
+exports.broadcastMessage = function(io, type, filter, data) {
+  console.log(data);
+  console.log(util.format('%s/%s', type, filter));
+  io.sockets.emit(util.format('%s/%s', type, filter), data);
+};
 
 exports.handle = handle;

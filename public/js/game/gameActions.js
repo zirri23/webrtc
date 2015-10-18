@@ -1,9 +1,11 @@
 socket.emit('set game', {
-  game: '{{ game.pk }}',
-  gamePlayer: '{{ gamePlayer.pk }}',
-  player: '{{ player.pk }}',
+  game: '{{ game.uuid }}',
+  gamePlayer: '{{ gamePlayer.uuid }}',
+  player: '{{ player.uuid }}',
   name: '{{ player.name }}',
   remoteAvatar: '{{ player.remoteAvatar }}' || DEFAULT_PROFILE_PIC});
+
+console.log("{{gamePlayer.game_id}}");
 
 window.maxZIndex = 0;
 window.game = {{ game|json|raw }};
@@ -14,15 +16,15 @@ window.gamePlayerIdToBoxId = {};
 for (var i = 0; i < game.gamePlayers.length; i++) {
   var gamePlayer = game.gamePlayers[i];
   gamePlayer.complete = true;
-  gamePlayerPkToGamePlayer[gamePlayer.pk] = gamePlayer;
+  gamePlayerPkToGamePlayer[gamePlayer.uuid] = gamePlayer;
 }
 
 arrangePlayers();
-processDrops();
-getCards(game.session);
+// processDrops();
+// getCards(game.session);
 
 $("#drop").append($("#board"));
-if (game.status === "undealt" && game.dealer === "{{ gamePlayer.pk }}") {
+if (game.status === "undealt" && game.dealer === "{{ gamePlayer.uuid }}") {
   showDealButton();
 }
 updateGameStatus(game.turnGamePlayer, game.leadGamePlayer, game.dealer, game.leadCard);
@@ -32,7 +34,7 @@ function updateGameStatus(turnGamePlayer, leadGamePlayer, dealer, leadCard, isSe
     var currentWon = parseInt($(sprintf("#%s", leadGamePlayer)).find(".won").text() || 0);
     updateScores($(sprintf("#%s", leadGamePlayer)), score, null, true);
   }
-  if (isSessionOver && dealer === "{{ gamePlayer.pk }}") {
+  if (isSessionOver && dealer === "{{ gamePlayer.uuid }}") {
     showDealButton();
   }
   $(".lead-card").hide();
@@ -60,8 +62,8 @@ function showDealButton() {
     $("deal-button").attr('disabled','disabled');
     $.post("/sendPlay/", {
       _csrf: '{{ csrfToken }}',
-      gamePk: game.pk,
-      gamePlayerPk: "{{ gamePlayer.pk }}",
+      gamePk: game.uuid,
+      gamePlayerPk: "{{ gamePlayer.uuid }}",
       type: "deal",
       metadata: [],
       name: '{{ player.name }}',
@@ -78,7 +80,7 @@ function showDealButton() {
 function arrangePlayers() {
   if($("#hand").find(".hand-avatar").length == 0) {
     var playerBox = $("#playerBox").clone();
-    playerBox.attr("id", "{{ gamePlayer.pk }}");
+    playerBox.attr("id", "{{ gamePlayer.uuid }}");
     playerBox.find(".avatar").attr("src", "{{ player.remoteAvatar }}" || DEFAULT_PROFILE_PIC);
     updateScoresOnLoad(playerBox, "{{ gamePlayer.score }}", "{{ gamePlayer.won }}");
     $("#hand").append(playerBox);
@@ -88,7 +90,7 @@ function arrangePlayers() {
   var playerCount = Object.keys(gamePlayerPkToGamePlayer).length;
   for (gamePlayerPk in gamePlayerPkToGamePlayer) {
     var gamePlayer = gamePlayerPkToGamePlayer[gamePlayerPk];
-    if(gamePlayer.pk != "{{ gamePlayer.pk }}") {
+    if(gamePlayer.uuid != "{{ gamePlayer.uuid }}") {
       $(sprintf(".%splayer%s-drops", playerCount, count))
           .find(".player-drop-holder")
               .attr("id", sprintf("%s-drops", gamePlayerPk));
@@ -111,13 +113,13 @@ function arrangePlayers() {
       gamePlayerIdToBoxId[gamePlayerPk] = positionBoxId;
     }
     if (game.status === "dealt" && gamePlayer.status === "active") {
-      $(sprintf("#%s", gamePlayer.pk)).find(".readyButton").addClass("not-ready");
-      if(gamePlayer.pk == "{{ gamePlayer.pk }}") {
-        $("#{{ gamePlayer.pk }}").find(".readyButton").addClass("player-not-ready");
+      $(sprintf("#%s", gamePlayer.uuid)).find(".readyButton").addClass("not-ready");
+      if(gamePlayer.uuid == "{{ gamePlayer.uuid }}") {
+        $("#{{ gamePlayer.uuid }}").find(".readyButton").addClass("player-not-ready");
       }
     } else {
-      $(sprintf("#%s", gamePlayer.pk)).find(".readyButton").removeClass("not-ready");
-      $(sprintf("#%s", gamePlayer.pk)).find(".readyButton").removeClass("player-not-ready");
+      $(sprintf("#%s", gamePlayer.uuid)).find(".readyButton").removeClass("not-ready");
+      $(sprintf("#%s", gamePlayer.uuid)).find(".readyButton").removeClass("player-not-ready");
     }
   }
 }
@@ -170,8 +172,8 @@ function flip(oldFace, container, newData) {
 function getCards(session) {
   $.post("/getCards/", {
     _csrf: '{{ csrfToken }}',
-    gamePlayerPk: "{{ gamePlayer.pk }}",
-    gamePk: "{{ game.pk }}",
+    gamePlayerPk: "{{ gamePlayer.uuid }}",
+    gamePk: "{{ game.uuid }}",
     session: session})
    .success(function(hands){
      $(".dry-badge").hide();
@@ -183,7 +185,7 @@ function getCards(session) {
          var cardHolder = cardHolderBox.find("img");
          if (cards[card].play == "unplayed") {
            cardHolder.attr("src", "/img/cards/svg/back.svg");
-           if (hands[h].gamePlayer === "{{ gamePlayer.pk }}" || cards[card].modifier === "show-dry") {
+           if (hands[h].gamePlayer === "{{ gamePlayer.uuid }}" || cards[card].modifier === "show-dry") {
              cardHolder.attr("src", sprintf("/img/cards/svg/%s.svg", card));
            }
            cardHolder.attr("name", card);
@@ -209,8 +211,8 @@ $(".play-action").drops({
   drop: function() {
     $.post("/sendPlay/", {
       _csrf: '{{ csrfToken }}',
-      gamePk: game.pk,
-      gamePlayerPk: "{{ gamePlayer.pk }}",
+      gamePk: game.uuid,
+      gamePlayerPk: "{{ gamePlayer.uuid }}",
       type: window.droppable.attr("id"),
       metadata: [{key: 'cards', value: [window.draggable.find("img").attr("name")]}],
       name: '{{ player.name }}',
@@ -231,8 +233,8 @@ $("#textInput").keypress(
     
     $.post("/sendChatMessage/", {
       _csrf: '{{ csrfToken }}',
-      gamePk: game.pk,
-      gamePlayerPk: "{{ gamePlayer.pk }}",
+      gamePk: game.uuid,
+      gamePlayerPk: "{{ gamePlayer.uuid }}",
       message: message,
       name: '{{ player.name }}',
       remoteAvatar: '{{ player.remoteAvatar }}' || DEFAULT_PROFILE_PIC})
@@ -279,14 +281,14 @@ function processReady(gamePlayerPk, remoteAvatar, cards, playType) {
 }
 
 
-$("#{{ gamePlayer.pk }}").find(".readyButton").click(function() {
+$("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
   if (!$(this).hasClass("player-not-ready")) {
     return;
   }
   $.post("/sendPlay/", {
     _csrf: '{{ csrfToken }}',
-    gamePk: game.pk,
-    gamePlayerPk: "{{ gamePlayer.pk }}",
+    gamePk: game.uuid,
+    gamePlayerPk: "{{ gamePlayer.uuid }}",
     type: "ready",
     name: '{{ player.name }}',
     remoteAvatar: '{{ player.remoteAvatar }}' || DEFAULT_PROFILE_PIC})

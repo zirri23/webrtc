@@ -13,6 +13,16 @@ function route(app, Bookshelf, io) {
   app.get('/playGame', ensureLoggedIn('/login'), gameRoutes.playGame);
   app.get('/createGame', ensureLoggedIn('/login'), gameRoutes.createGame);
   app.post('/queryGames', ensureLoggedIn('/login'), gameRoutes.queryGames);
+  app.post('/sendChatMessage', ensureLoggedIn('/login'), gameRoutes.sendChatMessage);
+  app.post('/joinGame', ensureLoggedIn('/login'), gameRoutes.joinGame);
+}
+
+post = function(url, route) {
+  app.post(url, ensureLoggedIn('/login'), route);
+}
+
+get = function(url, route) {
+  app.get(url, ensureLoggedIn('/login'), route);
 }
 
 exports.route = route;
