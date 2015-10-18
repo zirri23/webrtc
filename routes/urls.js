@@ -11,10 +11,10 @@ function route(app, Bookshelf, io) {
   app.get('/login', authRoutes.login);
   app.get('/', ensureLoggedIn('/login'), routes.index);
   app.get('/playGame', ensureLoggedIn('/login'), gameRoutes.playGame);
+  app.get('/joinGame', ensureLoggedIn('/login'), gameRoutes.joinGame);
   app.get('/createGame', ensureLoggedIn('/login'), gameRoutes.createGame);
   app.post('/queryGames', ensureLoggedIn('/login'), gameRoutes.queryGames);
   app.post('/sendChatMessage', ensureLoggedIn('/login'), gameRoutes.sendChatMessage);
-  app.post('/joinGame', ensureLoggedIn('/login'), gameRoutes.joinGame);
 }
 
 post = function(url, route) {

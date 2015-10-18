@@ -48,7 +48,7 @@ var Game = bookshelf.Model.extend({
     return this.hasMany(Play);
   },
 	creator: function() {
-		return this.belongsTo(Player);
+		return this.belongsTo(Player, "creator");
 	},
   getAllMetadata: function() {
     return JSON.parse(this.get("metadata"));
@@ -61,10 +61,10 @@ var Game = bookshelf.Model.extend({
 var GamePlayer = bookshelf.Model.extend({
 	tableName: 'gamePlayers',
   hasTimestamps: ['created_at', 'updated_at'],
-	game: function() {
+	player: function() {
 		return this.belongsTo(Player);
 	},
-	player: function() {
+	game: function() {
 		return this.belongsTo(Game);
 	},
   plays: function() {

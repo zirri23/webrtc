@@ -112,7 +112,7 @@ $(document).ready(function() {
 
 	function createOpponent(game, gamePlayer) {
 	 var opponent = cloneById("opponent", sprintf("opponent_%s_%s", game.uuid, gamePlayer.uuid));
-   opponent.find("img").attr("src", gamePlayer.player.remoteAvatar || DEFAULT_PROFILE_PIC);
+   opponent.find("img").attr("src", gamePlayer.player.avatar || DEFAULT_PROFILE_PIC);
    opponent.find("img").attr("title", gamePlayer.player.name);
    opponent.show();
    return opponent;

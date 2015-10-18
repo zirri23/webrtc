@@ -14,7 +14,7 @@ socket.on(sprintf("chat message/%s", "{{ game.uuid }}"), function(message) {
     chatBubble.find(".chat-sender").append(message.sender);
   }
   chatBubble.find(".chat-time").append(new Date(message.time).format("h:MM TT"));
-  chatBubble.find(".chat-avatar").attr("src", message.remoteAvatar || DEFAULT_PROFILE_PIC);
+  chatBubble.find(".chat-avatar").attr("src", message.avatar || DEFAULT_PROFILE_PIC);
   $("#messages").append(chatBubble);
   chatBubble.find(".chat-avatar").fadeIn();
   chatBubble.find(".chat-content").show(150);
@@ -33,7 +33,7 @@ function sendPlayToChat(message) {
     chatBubble.find(".chat-sender").append(message.sender);
   }
   chatBubble.find(".chat-time").append(new Date(message.time).format("h:MM TT"));
-  chatBubble.find(".chat-avatar").attr("src", message.remoteAvatar || DEFAULT_PROFILE_PIC);
+  chatBubble.find(".chat-avatar").attr("src", message.avatar || DEFAULT_PROFILE_PIC);
   $("#messages").append(chatBubble);
   chatBubble.find(".chat-avatar").fadeIn();
   chatBubble.find(".chat-content").show(150);
@@ -54,7 +54,7 @@ socket.on(sprintf("deal/%s", "{{ game.uuid }}"), function(message) {
 });
 
 socket.on(sprintf("drop/%s", "{{ game.uuid }}"), function(message) {
-  processDrop(message.senderPk, message.remoteAvatar, message.details.cards);
+  processDrop(message.senderPk, message.avatar, message.details.cards);
   updateGameStatus(
       message.details.turnGamePlayer,
       message.details.leadGamePlayer,
@@ -65,14 +65,14 @@ socket.on(sprintf("drop/%s", "{{ game.uuid }}"), function(message) {
 });
 
 socket.on(sprintf("dry/%s", "{{ game.uuid }}"), function(message) {
-  processDry(message.senderPk, message.remoteAvatar, message.details.cards, message.type);
+  processDry(message.senderPk, message.avatar, message.details.cards, message.type);
 });
 
 socket.on(sprintf("show-dry/%s", "{{ game.uuid }}"), function(message) {
-  processDry(message.senderPk, message.remoteAvatar, message.details.cards, message.type);
+  processDry(message.senderPk, message.avatar, message.details.cards, message.type);
 });
 
 socket.on(sprintf("ready/%s", "{{ game.uuid }}"), function(message) {
-  processReady(message.senderPk, message.remoteAvatar, message.details.cards, message.type);
+  processReady(message.senderPk, message.avatar, message.details.cards, message.type);
   sendPlayToChat(message);
 });

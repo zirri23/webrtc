@@ -3,7 +3,7 @@ socket.emit('set game', {
   gamePlayer: '{{ gamePlayer.uuid }}',
   player: '{{ player.uuid }}',
   name: '{{ player.name }}',
-  remoteAvatar: '{{ player.remoteAvatar }}' || DEFAULT_PROFILE_PIC});
+  avatar: '{{ player.avatar }}' || DEFAULT_PROFILE_PIC});
 
 console.log("{{gamePlayer.game_id}}");
 
@@ -50,7 +50,7 @@ function processDrops() {
     var play = game.plays[i];
     if (play.type === "drop") {
       var gamePlayer = gamePlayerPkToGamePlayer[play.gamePlayerPk];
-      processDrop(play.gamePlayerPk, gamePlayer.player.remoteAvatar || DEFAULT_PROFILE_PIC, play.cards);
+      processDrop(play.gamePlayerPk, gamePlayer.player.avatar || DEFAULT_PROFILE_PIC, play.cards);
     }
   }
 }
@@ -67,7 +67,7 @@ function showDealButton() {
       type: "deal",
       metadata: [],
       name: '{{ player.name }}',
-      remoteAvatar: '{{ player.remoteAvatar }}'})
+      avatar: '{{ player.avatar }}'})
      .success(function(data) {
        $("#deal-button").fadeOut("slow");
      })
@@ -81,7 +81,7 @@ function arrangePlayers() {
   if($("#hand").find(".hand-avatar").length == 0) {
     var playerBox = $("#playerBox").clone();
     playerBox.attr("id", "{{ gamePlayer.uuid }}");
-    playerBox.find(".avatar").attr("src", "{{ player.remoteAvatar }}" || DEFAULT_PROFILE_PIC);
+    playerBox.find(".avatar").attr("src", "{{ player.avatar }}" || DEFAULT_PROFILE_PIC);
     updateScoresOnLoad(playerBox, "{{ gamePlayer.score }}", "{{ gamePlayer.won }}");
     $("#hand").append(playerBox);
   }
@@ -105,7 +105,7 @@ function arrangePlayers() {
       }
       var playerBox = $("#playerBox").clone();
       playerBox.attr("id", gamePlayerPk);
-      playerBox.find(".avatar").attr("src", gamePlayer.player.remoteAvatar || DEFAULT_PROFILE_PIC);
+      playerBox.find(".avatar").attr("src", gamePlayer.player.avatar || DEFAULT_PROFILE_PIC);
       
       updateScoresOnLoad(playerBox, gamePlayer.score, gamePlayer.won);
       
@@ -216,7 +216,7 @@ $(".play-action").drops({
       type: window.droppable.attr("id"),
       metadata: [{key: 'cards', value: [window.draggable.find("img").attr("name")]}],
       name: '{{ player.name }}',
-      remoteAvatar: '{{ player.remoteAvatar }}' || DEFAULT_PROFILE_PIC})
+      avatar: '{{ player.avatar }}' || DEFAULT_PROFILE_PIC})
       .error(function(err){
         console.log(err);
         alert(err.responseText);
@@ -237,7 +237,7 @@ $("#textInput").keypress(
       gamePlayerPk: "{{ gamePlayer.uuid }}",
       message: message,
       name: '{{ player.name }}',
-      remoteAvatar: '{{ player.remoteAvatar }}' || DEFAULT_PROFILE_PIC})
+      avatar: '{{ player.avatar }}' || DEFAULT_PROFILE_PIC})
      .error(function(err) {
        alert(err.responseText);
      })
@@ -249,7 +249,7 @@ $("#textInput").keypress(
   }
  });
 
-function processDrop(gamePlayerPk, remoteAvatar, cards) {
+function processDrop(gamePlayerPk, avatar, cards) {
   for (var i = 0; i < cards.length; i++) {
     $(sprintf("#%s", gamePlayerPk)).find(sprintf(".card%s", cards[i].index)).hide("fast");
     var cardImage = $("#drop-card").clone();
@@ -260,13 +260,13 @@ function processDrop(gamePlayerPk, remoteAvatar, cards) {
     
     var dropHolder = $(sprintf("#%s-drops", gamePlayerPk));
     dropHolder.find(".player-drop-cards").append(cardImage);
-    dropHolder.find(".board-pic").attr("src", remoteAvatar);
+    dropHolder.find(".board-pic").attr("src", avatar);
     dropHolder.animate().css("visibility", "visible");
     cardImage.draggable();
   }
 }
 
-function processDry(gamePlayerPk, remoteAvatar, cards, playType) {
+function processDry(gamePlayerPk, avatar, cards, playType) {
   for (var i = 0; i < cards.length; i++) {
     var cardHolder = $(sprintf("#%s", gamePlayerPk)).find(sprintf(".card%s", cards[i].index));
     cardHolder.find(sprintf(".%s", playType)).show("fast");
@@ -276,7 +276,7 @@ function processDry(gamePlayerPk, remoteAvatar, cards, playType) {
   }
 }
 
-function processReady(gamePlayerPk, remoteAvatar, cards, playType) {
+function processReady(gamePlayerPk, avatar, cards, playType) {
   $(sprintf("#%s", gamePlayerPk)).find(".readyButton").removeClass("not-ready");
 }
 
@@ -291,7 +291,7 @@ $("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
     gamePlayerPk: "{{ gamePlayer.uuid }}",
     type: "ready",
     name: '{{ player.name }}',
-    remoteAvatar: '{{ player.remoteAvatar }}' || DEFAULT_PROFILE_PIC})
+    avatar: '{{ player.avatar }}' || DEFAULT_PROFILE_PIC})
     .error(function(err){
       console.log(err);
       alert(err.responseText);

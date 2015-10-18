@@ -36,14 +36,16 @@ exports.initSignups = function(env, Bookshelf) {
     callbackURL: GOOGLE_CALLBACK_URL[env],
   },
   function(accessToken, refreshToken, profile, done) {
+    console.log(JSON.stringify(profile, null, "  "));
     Bookshelf.Player.where({ remote_id: profile.id }).fetch().then(function(player) {
     	if (player) {
     		done(null, player);
     	} else {
-    		Bookshelf.Player.forge({remote_id: profile.id, uuid: uuid.v4(), name: profile.displayName}).save().then(function(player) {
-    			console.log("created user: " + player.id);
-    			done(null, player);
-    		});
+    		Bookshelf.Player.forge({remote_id: profile.id, uuid: uuid.v4(),
+          name: profile.displayName, avatar: profile._json.image.url}).save().then(function(player) {
+              console.log("created user: " + player.id);
+              done(null, player);
+            });
     	}
     }).catch(function(err) {
     	console.log(err);

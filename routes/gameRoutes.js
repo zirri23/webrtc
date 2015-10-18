@@ -50,22 +50,24 @@ exports.joinGame = function(req, res) {
   var playerId = req.user.id;
   var gamePk = req.query.gameId;
 
-  models.GamePlayer.where({game_uuid: gameId, player_id: playerId}).fetch({}).then(function(gamePlayer) {
+  models.GamePlayer.where({game_uuid: gamePk, player_id: playerId}).fetch({}).then(function(gamePlayer) {
     if (gamePlayer) {
       res.redirect(util.format('/playGame?gameId=%s', gamePk));
-    } else {
+    } else models.Game.where({uuid: gamePk}).fetch().then(function (game) {
       models.GamePlayer.forge({
         game_id: game.get('id'),
-        game_uuid: game.get('uuid'),
+        game_uuid: gamePk,
         player_id: req.user.id,
         player_uuid: req.user.get('uuid'),
         uuid: uuid.v4()
-      }).save().then(function(gameplayer) {
-        res.redirect("/playGame?gameId=" + game.get('uuid'));
-      }).catch(function(err) {
+      }).save().then(function (gameplayer) {
+        res.redirect("/playGame?gameId=" + gamePk);
+      }).catch(function (err) {
         res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
       });
-    }
+    }).catch(function (err) {
+      res.send(500, util.format("%s is not a member of this game", req.user.get("uuid")));
+    });
   });
 }
 
@@ -94,7 +96,7 @@ exports.sendChatMessage = function(req, res) {
         sender: req.body.name,
         time: new Date().getTime(),
         senderPk: gamePlayer.get('uuid'),
-        remoteAvatar: req.body.remoteAvatar
+        avatar: req.body.avatar
       });
       res.send(200);
     }
