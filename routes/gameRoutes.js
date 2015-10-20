@@ -11,23 +11,21 @@ exports.setIo = function(i) {
   io = i;
 };
 
-exports.createGame = function(req, res) {
-  models.transaction(function(t) {
-    models.Game.forge({creator: req.user.id, uuid: uuid.v4()}).save({transacting: t}).then(function (game) {
-      console.log("Created a game with id: " + game.get('uuid'));
-      models.GamePlayer.forge({
-        game_id: game.get('id'),
-        game_uuid: game.get('uuid'),
-        player_id: req.user.id,
-        player_uuid: req.user.get('uuid'),
-        uuid: uuid.v4()
-      }).save({transacting: t}).then(function(gameplayer) {
-        res.redirect("/playGame?gameId=" + game.get('uuid'));
-      }).catch(function(err) {
-        res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
-      }).catch(function(err) {
-        res.send(500, "Unable to create Game: " + JSON.stringify(err));
-      });
+exports.createGame = function(req, res, models, io, t) {
+  models.Game.forge({creator: req.user.id, uuid: uuid.v4()}).save().then(function (game) {
+    console.log("Created a game with id: " + game.get('uuid'));
+    models.GamePlayer.forge({
+      game_id: game.get('id'),
+      game_uuid: game.get('uuid'),
+      player_id: req.user.id,
+      player_uuid: req.user.get('uuid'),
+      uuid: uuid.v4()
+    }).save().then(function(gameplayer) {
+      res.redirect("/playGame?gameId=" + game.get('uuid'));
+    }).catch(function(err) {
+      res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
+    }).catch(function(err) {
+      res.send(500, "Unable to create Game: " + JSON.stringify(err));
     });
   });
 };
@@ -54,25 +52,23 @@ exports.joinGame = function(req, res) {
   var playerId = req.user.id;
   var gamePk = req.query.gameId;
 
-  models.transaction(function(t) {
-    models.GamePlayer.where({game_uuid: gamePk, player_id: playerId}).fetch({}).then(function (gamePlayer) {
-      if (gamePlayer) {
-        res.redirect(util.format('/playGame?gameId=%s', gamePk));
-      } else models.Game.where({uuid: gamePk}).fetch().then(function (game) {
-        models.GamePlayer.forge({
-          game_id: game.get('id'),
-          game_uuid: gamePk,
-          player_id: req.user.id,
-          player_uuid: req.user.get('uuid'),
-          uuid: uuid.v4()
-        }).save({transacting: t}).then(function (gameplayer) {
-          res.redirect("/playGame?gameId=" + gamePk);
-        }).catch(function (err) {
-          res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
-        });
+  models.GamePlayer.where({game_uuid: gamePk, player_id: playerId}).fetch({}).then(function(gamePlayer) {
+    if (gamePlayer) {
+      res.redirect(util.format('/playGame?gameId=%s', gamePk));
+    } else models.Game.where({uuid: gamePk}).fetch().then(function (game) {
+      models.GamePlayer.forge({
+        game_id: game.get('id'),
+        game_uuid: gamePk,
+        player_id: req.user.id,
+        player_uuid: req.user.get('uuid'),
+        uuid: uuid.v4()
+      }).save().then(function (gameplayer) {
+        res.redirect("/playGame?gameId=" + gamePk);
       }).catch(function (err) {
-        res.send(500, util.format("%s is not a member of this game", req.user.get("uuid")));
+        res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
       });
+    }).catch(function (err) {
+      res.send(500, util.format("%s is not a member of this game", req.user.get("uuid")));
     });
   });
 };
@@ -104,6 +100,35 @@ exports.sendChatMessage = function(req, res) {
         avatar: req.body.avatar
       });
       res.send(200);
+    }
+  });
+};
+
+exports.sendPlay = function(req, res) {
+  var playerId = req.user.id;
+  var gamePk = req.body.gamePk;
+  var gamePlayerPk = req.body.gamePlayerPk;
+  models.GamePlayer. where({uuid: gamePlayerPk}).fetch().then(function(gamePlayer) {
+    if(!gamePlayer) {
+      res.send(500, util.format("%s is not a member of this game", gamePk));
+    } else if(gamePlayer.get('player_id') != playerId) {
+      res.send(500, util.format("Not allowed to send chats for: %s", gamePlayerPk));
+    } else {
+      engine.handlePlay(req.user.id, gamePlayer, req.body.type, req.body.metadata, models, function(err, details){
+        if (err) {
+          res.send(500, err);
+        } else{
+          sockets.broadcastMessage(io, req.body.type, gamePk, {
+            details: details,
+            sender: req.body.name,
+            type: req.body.type,
+            time: new Date().getTime(),
+            senderPk: gamePlayer.pk,
+            remoteAvatar: req.body.remoteAvatar
+          });
+          res.send(200);
+        }
+      });
     }
   });
 };
