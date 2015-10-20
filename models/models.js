@@ -15,7 +15,7 @@ var envs = {
         charset  : 'utf8'
       }
     }
-}
+};
 var env = process.env.NODE_ENV || 'dev';
 var knex = require('./knex');
 
@@ -90,7 +90,7 @@ var Play = bookshelf.Model.extend({
   gamePlayer: function() {
     return this.belongsTo(GamePlayer);
   },
-})
+});
 
-module.exports = {Player: Player, Game: Game, GamePlayer: GamePlayer};
+module.exports = {Player: Player, Game: Game, GamePlayer: GamePlayer, transaction: bookshelf.transaction};
 

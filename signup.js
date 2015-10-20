@@ -42,7 +42,7 @@ exports.initSignups = function(env, Bookshelf) {
     		done(null, player);
     	} else {
     		Bookshelf.Player.forge({remote_id: profile.id, uuid: uuid.v4(),
-          name: profile.displayName, avatar: profile._json.image.url}).save().then(function(player) {
+          name: profile.displayName, avatar: profile._json.image.url.replace("sz=50", "")}).save().then(function(player) {
               console.log("created user: " + player.id);
               done(null, player);
             });

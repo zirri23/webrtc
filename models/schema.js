@@ -6,7 +6,7 @@ var Schema = {
 	  remote_id : {type: "string", nullable: false},
     avatar    : {type: "string", nullable: true},
 	  online    : {type: "boolean", defaultTo: false, nullable: false },
-    metadata  : {type: "json", nullable: false, defaultTo: JSON.stringify({})},
+    metadata  : {type: "json", nullable: true},
     created_at: {type: 'dateTime', nullable: false},
     updated_at: {type: 'dateTime', nullable: true}
   },
@@ -15,7 +15,7 @@ var Schema = {
 		id        : {type: "increments", nullable: false, primary: true},
 		creator   : {type: "integer"},
     uuid      : {type: "uuid", nullable: false, unique: true},
-    metadata  : {type: "json", nullable: false, defaultTo: JSON.stringify({})},
+    metadata  : {type: "json", nullable: true},
     created_at: {type: 'dateTime', nullable: false},
     updated_at: {type: 'dateTime', nullable: true}
 	},
@@ -27,7 +27,7 @@ var Schema = {
     player_id  : {type: "integer", nullable: false},
     player_uuid: {type: "uuid", nullable: false},
     uuid       : {type: "uuid", nullable: false},
-    metadata   : {type: "json", nullable: false, defaultTo: JSON.stringify({})},
+    metadata   : {type: "json", nullable: true},
     created_at : {type: 'dateTime', nullable: false},
     updated_at : {type: 'dateTime', nullable: true}
 	},
@@ -41,7 +41,7 @@ var Schema = {
     game_uuid       : {type: "uuid", nullable: false},
     player_id       : {type: "integer", nullable: false},
     player_uuid     : {type: "uuid", nullable: false},
-    metadata        : {type: "json", nullable: false, defaultTo: JSON.stringify({})},
+    metadata        : {type: "json", nullable: true},
     created_at      : {type: 'dateTime', nullable: false},
     updated_at      : {type: 'dateTime', nullable: true}
   }
