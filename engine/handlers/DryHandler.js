@@ -1,7 +1,7 @@
 var cards = require('../cards');
 
-exports.DryHandler = function(models) {
-  this.handlePlay = function(play, game, gamePlayer, gamePlayerMapById, playMetadata, callback) {
+exports.DryHandler = {
+  handlePlay : function(play, game, gamePlayer, gamePlayerMapById, playMetadata, t, callback) {
     if (gamePlayer.status != "active") {
       callback("Can only dry when cards have just been dealt", null);
       return;
@@ -29,5 +29,5 @@ exports.DryHandler = function(models) {
         cards: playedCards,
       });
     }, /* retrieveDbObject */ true);
-  };
+  }
 };

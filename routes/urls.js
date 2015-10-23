@@ -6,6 +6,12 @@ var gameRoutes = require('./gameRoutes');
 
 function route(app, Bookshelf, io) {
 
+  function withoutTransaction(callback) {
+    return function(req, res) {
+      callback(req, res, Bookshelf, io);
+    }
+  }
+
   function withTransaction(callback) {
     return function(req, res) {
       Bookshelf.transaction(function(t) {
@@ -14,18 +20,17 @@ function route(app, Bookshelf, io) {
     }
   }
 
-  routes.setModels(Bookshelf);
-  routes.setIo(io);
   app.get('/auth/google', authRoutes.authenticateGoogle);
   app.get('/auth/google/oauth2callback', authRoutes.authenticateGoogleCallback);
-  app.get('/login', authRoutes.login);
+  app.get('/login', withoutTransaction(authRoutes.login));
   app.get('/', ensureLoggedIn('/login'), routes.index);
-  app.get('/playGame', ensureLoggedIn('/login'), gameRoutes.playGame);
-  app.get('/joinGame', ensureLoggedIn('/login'), gameRoutes.joinGame);
+  app.get('/playGame', ensureLoggedIn('/login'), withoutTransaction(gameRoutes.playGame));
+  app.get('/joinGame', ensureLoggedIn('/login'), withTransaction(gameRoutes.joinGame));
   app.get('/createGame', ensureLoggedIn('/login'), withTransaction(gameRoutes.createGame));
-  app.post('/queryGames', ensureLoggedIn('/login'), gameRoutes.queryGames);
-  app.post('/sendChatMessage', ensureLoggedIn('/login'), gameRoutes.sendChatMessage);
-  app.post('/sendPlay', ensureLoggedIn('/login'), gameRoutes.sendPlay);
+  app.post('/queryGames', ensureLoggedIn('/login'), withoutTransaction(gameRoutes.queryGames));
+  app.post('/sendChatMessage', ensureLoggedIn('/login'), withoutTransaction(gameRoutes.sendChatMessage));
+  app.post('/sendPlay', ensureLoggedIn('/login'), withTransaction(gameRoutes.sendPlay));
+  app.post('/getCards', ensureLoggedIn('/login'), withoutTransaction(gameRoutes.getCards));
 }
 
 post = function(url, route) {

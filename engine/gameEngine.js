@@ -5,6 +5,7 @@ var JoinHandler = require('./handlers/JoinHandler').JoinHandler;
 var DropHandler = require('./handlers/DropHandler').DropHandler;
 var ReadyHandler = require('./handlers/ReadyHandler').ReadyHandler;
 var DryHandler = require('./handlers/DryHandler').DryHandler;
+var uuid = require("node-uuid");
 
 var playHandlerMap = {
   "init"    : InitHandler,
@@ -16,55 +17,35 @@ var playHandlerMap = {
   "show-dry": DryHandler,
 };
 
-exports.handlePlay = function(playerId, gamePlayer, type, metadata, models, callback) {
-  gamePlayer.game(function(err, game){
-    game.gamePlayers(function(err, gamePlayers){
-      var gamePlayerMapById = {};
-      for (var i = 0; i < gamePlayers.length; i++) {
-        gamePlayerMapById[gamePlayers[i]] = gamePlayers[i];
-      }
-      models.Play.create({
-        gameId: game.id,
-        playerId: playerId,
-        gamePlayerId: gamePlayer.id,
-        session: game.session,
-        type: type}, function (err, play) {
-        play.setMetadata(metadata, function(err, savedPlayMetadata) {
-          new playHandlerMap[play.type]().handlePlay(
-              play,
-              game,
-              gamePlayer,
-              gamePlayerMapById,
-              savedPlayMetadata,
-              function(err, details) {
-                if (err) {
-                  deletePlay(savedPlayMetadata, play, callback, err, details);
-                } else {
-                  callback(err, details);
-                }
-              });
+exports.handlePlay = function(gamePlayer, type, metadata, models, t, callback) {
+  var game = gamePlayer.related('game');
+  var gamePlayers = game.related('gamePlayers');
+
+  var gamePlayerMap = {};
+  gamePlayers.map(function(gamePlayer) { gamePlayerMap[gamePlayer.get("uuid")] = gamePlayer});
+
+  var play = models.Play.forge({
+    uuid: uuid.v4(),
+    game_id: game.get("id"),
+    game_uuid: game.get("uuid"),
+    player_id: gamePlayer.get("player_id"),
+    player_uuid: gamePlayer.get("player_uuid"),
+    game_player_id: gamePlayer.get("id"),
+    game_player_uuid: gamePlayer.get("uuid")});
+
+  play.setMetadata("session", game.get("session"));
+  play.setMetadata("type", type);
+  play.setAllMetadata(metadata);
+
+  play.save(null, {transacting: t}).then(function(play) {
+    playHandlerMap[play.getMetadata("type")].handlePlay(
+        play,
+        game,
+        gamePlayer,
+        gamePlayerMap,
+        t,
+        function(err, details) {
+          callback(err, details);
         });
-      });
-    });
   });
 };
-
-function deletePlay(savedPlayMetadata, play, callback, err, details) {
-  var metadataCount = Object.keys(savedPlayMetadata).length;
-  if (metadataCount == 0) {
-    play.destroy(function (unused) {
-      callback(err, details);
-      return;
-    });
-  }
-  for (key in savedPlayMetadata) {
-    savedPlayMetadata[key].destroy(function(unused) {
-      if (--metadataCount == 0) {
-        play.destroy(function (unused) {
-          callback(err, details);
-          return;
-        });
-      }
-    });
-  }
-}

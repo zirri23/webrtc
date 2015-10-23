@@ -1,80 +1,90 @@
-var uuid = require('node-uuid');
+var uuid = require("node-uuid");
 var sockets = require("../sockets");
-var util = require('util');
-
-exports.setModels = function(m) {
-  models = m;
-  transaction = m.transaction;
-};
-
-exports.setIo = function(i) {
-  io = i;
-};
+var util = require("util");
+var engine = require("../engine/gameEngine");
 
 exports.createGame = function(req, res, models, io, t) {
-  models.Game.forge({creator: req.user.id, uuid: uuid.v4()}).save().then(function (game) {
-    console.log("Created a game with id: " + game.get('uuid'));
+  models.Game.forge({creator: req.user.id, uuid: uuid.v4()}).save(null, {transacting: t}).then(function (game) {
+    console.log("Created a game with id: " + game.get("uuid"));
     models.GamePlayer.forge({
-      game_id: game.get('id'),
-      game_uuid: game.get('uuid'),
+      game_id: game.get("id"),
+      game_uuid: game.get("uuid"),
       player_id: req.user.id,
-      player_uuid: req.user.get('uuid'),
+      player_uuid: req.user.get("uuid"),
       uuid: uuid.v4()
-    }).save().then(function(gameplayer) {
-      res.redirect("/playGame?gameId=" + game.get('uuid'));
+    }).save(null, {transacting: t}).then(function(gamePlayer) {
+      gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
+        engine.handlePlay(gamePlayer, "init", {}, models, t, function(err, result) {
+          engine.handlePlay(gamePlayer, "join", {}, models, t, function(err, result) {
+            if (!err) {
+              t.commit();
+              res.redirect("/playGame?gameId=" + game.get("uuid"));
+            } else {
+              t.rollback();
+              res.send(500, "Unable to create Game " + JSON.stringify(err));
+            }
+          });
+        });
+      });
     }).catch(function(err) {
+      t.rollback();
       res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
-    }).catch(function(err) {
-      res.send(500, "Unable to create Game: " + JSON.stringify(err));
     });
+  }).catch(function(err) {
+    t.rollback();
+    res.send(500, "Unable to create Game: " + JSON.stringify(err));
   });
 };
 
-exports.playGame = function(req, res) {
+exports.playGame = function(req, res, models, io) {
   var gameId = req.query.gameId;
   var playerId = req.user.id;
 
   models.GamePlayer.where({game_uuid: gameId, player_id: playerId}).fetch(
-      {withRelated: ['game', "game.gamePlayers", "game.gamePlayers.player"]}
+      {withRelated: ["game", "game.gamePlayers", "game.gamePlayers.player", "game.plays"]}
   ).then(function(gamePlayer) {
     var game = gamePlayer.related("game");
-    res.render('game/game.html', {
+    res.render("game/game.html", {
       game: game.toJSON(),
       gamePlayer: gamePlayer.toJSON(),
       player: req.user.toJSON(),
       csrfToken: req.session._csrf});
   }).catch(function(err) {
-        res.send(500, util.format("%s is not a member of this game", req.user.get("uuid")));
+    res.send(500, util.format("%s is not a member of this game", req.user.get("uuid")));
   });
 };
 
-exports.joinGame = function(req, res) {
+exports.joinGame = function(req, res, models, io, t) {
   var playerId = req.user.id;
   var gamePk = req.query.gameId;
 
-  models.GamePlayer.where({game_uuid: gamePk, player_id: playerId}).fetch({}).then(function(gamePlayer) {
+  models.GamePlayer.where({game_uuid: gamePk, player_id: playerId}).fetch({transacting: t}).then(function(gamePlayer) {
     if (gamePlayer) {
-      res.redirect(util.format('/playGame?gameId=%s', gamePk));
-    } else models.Game.where({uuid: gamePk}).fetch().then(function (game) {
+      t.commit();
+      res.redirect(util.format("/playGame?gameId=%s", gamePk));
+    } else models.Game.where({uuid: gamePk}).fetch({transacting: t}).then(function (game) {
       models.GamePlayer.forge({
-        game_id: game.get('id'),
+        game_id: game.get("id"),
         game_uuid: gamePk,
         player_id: req.user.id,
-        player_uuid: req.user.get('uuid'),
+        player_uuid: req.user.get("uuid"),
         uuid: uuid.v4()
-      }).save().then(function (gameplayer) {
+      }).save(null, {transacting: t}).then(function (gamePlayer) {
+        t.commit();
         res.redirect("/playGame?gameId=" + gamePk);
       }).catch(function (err) {
+        t.rollback();
         res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
       });
     }).catch(function (err) {
+      t.rollback();
       res.send(500, util.format("%s is not a member of this game", req.user.get("uuid")));
     });
   });
 };
 
-exports.queryGames = function(req, res) {
-    models.Game.where({}).fetchAll({withRelated: ['gamePlayers', "gamePlayers.player", "creator"]}).then(function(games) {
+exports.queryGames = function(req, res, models, io) {
+    models.Game.where({}).fetchAll({withRelated: ["gamePlayers", "gamePlayers.player", "creator"]}).then(function(games) {
         console.log(games.toJSON());
         res.send(games.toJSON());
     }).catch(function(err) {
@@ -82,21 +92,21 @@ exports.queryGames = function(req, res) {
     });
 };
 
-exports.sendChatMessage = function(req, res) {
+exports.sendChatMessage = function(req, res, models, io) {
   var playerId = req.user.id;
   var gamePk = req.body.gamePk;
   var gamePlayerPk = req.body.gamePlayerPk;
   models.GamePlayer. where({uuid: gamePlayerPk}).fetch().then(function(gamePlayer) {
     if(!gamePlayer) {
       res.send(500, util.format("%s is not a member of this game", gamePk));
-    } else if(gamePlayer.get('player_id') != playerId) {
+    } else if(gamePlayer.get("player_id") != playerId) {
       res.send(500, util.format("Not allowed to send chats for: %s", gamePlayerPk));
     } else {
-      sockets.broadcastMessage(io, 'chat message', gamePk, {
+      sockets.broadcastMessage(io, "chat message", gamePk, {
         text: req.body.message,
         sender: req.body.name,
         time: new Date().getTime(),
-        senderPk: gamePlayer.get('uuid'),
+        senderPk: gamePlayer.get("uuid"),
         avatar: req.body.avatar
       });
       res.send(200);
@@ -104,31 +114,67 @@ exports.sendChatMessage = function(req, res) {
   });
 };
 
-exports.sendPlay = function(req, res) {
+exports.sendPlay = function(req, res, models, io, t) {
   var playerId = req.user.id;
   var gamePk = req.body.gamePk;
   var gamePlayerPk = req.body.gamePlayerPk;
-  models.GamePlayer. where({uuid: gamePlayerPk}).fetch().then(function(gamePlayer) {
+  models.GamePlayer.where({uuid: gamePlayerPk}).fetch({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
     if(!gamePlayer) {
+      t.rollback();
       res.send(500, util.format("%s is not a member of this game", gamePk));
-    } else if(gamePlayer.get('player_id') != playerId) {
-      res.send(500, util.format("Not allowed to send chats for: %s", gamePlayerPk));
+    } else if(gamePlayer.get("player_id") != playerId) {
+      t.rollback();
+      res.send(500, util.format("Not allowed to send plays for: %s", gamePlayerPk));
     } else {
-      engine.handlePlay(req.user.id, gamePlayer, req.body.type, req.body.metadata, models, function(err, details){
+      engine.handlePlay(gamePlayer, req.body.type, req.body.metadata, models, t, function(err, details){
         if (err) {
+          t.rollback();
           res.send(500, err);
-        } else{
+        } else {
+          t.commit();
           sockets.broadcastMessage(io, req.body.type, gamePk, {
             details: details,
             sender: req.body.name,
             type: req.body.type,
             time: new Date().getTime(),
-            senderPk: gamePlayer.pk,
+            senderPk: gamePlayer.get("uuid"),
             remoteAvatar: req.body.remoteAvatar
           });
           res.send(200);
         }
       });
+    }
+  });
+};
+
+exports.getCards = function(req, res, models, io) {
+  var playerId = req.user.id;
+  var gamePlayerPk = req.body.gamePlayerPk;
+  var gamePk = req.body.gamePk;
+
+  models.GamePlayer.where({uuid: gamePlayerPk}).fetch({withRelated: ["game", "game.gamePlayers"]}).then(function(gamePlayer) {
+    if(!gamePlayer) {
+      res.send(500, util.format("%s is not a member of this game", gamePk));
+    } else if(gamePlayer.get("player_id") != playerId) {
+      res.send(500, util.format("Not allowed to send plays for: %s", gamePlayerPk));
+    } else {
+      var gameMetadata = gamePlayer.related("game").getAllMetadata();
+      console.log("In getCards**************************: " + JSON.stringify(gameMetadata));
+      if (gameMetadata.hands == null || gameMetadata.hands == undefined) {
+        return res.send([]);
+      }
+      var hands = gameMetadata.hands[gameMetadata.session];
+      console.log(hands + "**************");
+
+      for (var handGamePlayerPk in hands) {
+        var gamePlayerHand = hands[handGamePlayerPk];
+        for (var i = 0; i < gamePlayerHand.length; i++) {
+          if (gamePlayerHand[i].modifier != "show-dry") {
+            gamePlayerHand[i].card = null;
+          }
+        }
+      }
+      res.send(hands);
     }
   });
 };

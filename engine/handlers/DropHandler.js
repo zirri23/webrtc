@@ -7,8 +7,8 @@ var pointsMap = {
   other: {"drop": 1, "dry": 1, "show-dry": 1}
 };
 
-exports.DropHandler = function(models) {
-  this.handlePlay = function(play, game, gamePlayer, gamePlayerMapById, playMetadata, callback) {
+exports.DropHandler = {
+  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, playMetadata, t, callback) {
     game.getMetadata(["turnGamePlayer", "leadCard", "leadGamePlayer", "dealer",
                       "cardsLeftToPlay"], function(err, gameMetadata) {
       if (game.status != "ready") {
@@ -74,7 +74,7 @@ exports.DropHandler = function(models) {
         });
       }, /* retrieveDbObject */ true);
     }, /* retrieveDbObject */ true);
-  };
+  }
 };
 
 function isGbaa(leadGamePlayer, gamePlayerPk, firstCard, leadCard, hand) {

@@ -36,7 +36,6 @@ exports.initSignups = function(env, Bookshelf) {
     callbackURL: GOOGLE_CALLBACK_URL[env],
   },
   function(accessToken, refreshToken, profile, done) {
-    console.log(JSON.stringify(profile, null, "  "));
     Bookshelf.Player.where({ remote_id: profile.id }).fetch().then(function(player) {
     	if (player) {
     		done(null, player);

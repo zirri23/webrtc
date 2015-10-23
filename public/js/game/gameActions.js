@@ -20,8 +20,8 @@ for (var i = 0; i < game.gamePlayers.length; i++) {
 }
 
 arrangePlayers();
-// processDrops();
-// getCards(game.session);
+processDrops();
+getCards(game.session);
 
 $("#drop").append($("#board"));
 if (game.status === "undealt" && game.dealer === "{{ gamePlayer.uuid }}") {
@@ -85,7 +85,7 @@ function arrangePlayers() {
     updateScoresOnLoad(playerBox, "{{ gamePlayer.score }}", "{{ gamePlayer.won }}");
     $("#hand").append(playerBox);
   }
-  
+
   var count = 1;
   var playerCount = Object.keys(gamePlayerPkToGamePlayer).length;
   for (gamePlayerPk in gamePlayerPkToGamePlayer) {
@@ -106,9 +106,9 @@ function arrangePlayers() {
       var playerBox = $("#playerBox").clone();
       playerBox.attr("id", gamePlayerPk);
       playerBox.find(".avatar").attr("src", gamePlayer.player.avatar || DEFAULT_PROFILE_PIC);
-      
+
       updateScoresOnLoad(playerBox, gamePlayer.score, gamePlayer.won);
-      
+
       flipPlayerBox(positionBox, positionBoxId, playerBox);
       gamePlayerIdToBoxId[gamePlayerPk] = positionBoxId;
     }
@@ -177,20 +177,21 @@ function getCards(session) {
     session: session})
    .success(function(hands){
      $(".dry-badge").hide();
-     
-     for (var h = 0; h < hands.length; h++) {
-       var cards = hands[h].hand;
-       for (card in cards) {
-         var cardHolderBox = $(sprintf("#%s", hands[h].gamePlayer)).find($(sprintf(".card%s", cards[card].index)));
+     for (var gamePlayer in hands) {
+       var hand = hands[gamePlayer];
+       console.log(hand);
+       for (var i = 0; i < Object.keys(hand).length; i++) {
+         var card = hand[i];
+         var cardHolderBox = $(sprintf("#%s", gamePlayer)).find($(sprintf(".card%s", i + 1)));
          var cardHolder = cardHolderBox.find("img");
-         if (cards[card].play == "unplayed") {
+         if (card.play == "unplayed") {
            cardHolder.attr("src", "/img/cards/svg/back.svg");
-           if (hands[h].gamePlayer === "{{ gamePlayer.uuid }}" || cards[card].modifier === "show-dry") {
-             cardHolder.attr("src", sprintf("/img/cards/svg/%s.svg", card));
+           if (gamePlayer === "{{ gamePlayer.uuid }}" || card.modifier === "show-dry") {
+             cardHolder.attr("src", sprintf("/img/cards/svg/%s.svg", card.card));
            }
-           cardHolder.attr("name", card);
+           cardHolder.attr("name", card.card);
            cardHolder.parent().fadeIn("slow");
-           cardHolderBox.find(sprintf(".%s", cards[card].modifier)).show("fast");
+           cardHolderBox.find(sprintf(".%s", card.modifier)).show("fast");
          } else {
            cardHolder.parent().hide("fast");
          }

@@ -1,18 +1,20 @@
-var cards = require('../cards');
+var cards = require("../cards");
 
-exports.InitHandler = function(models) {
-  this.handlePlay = function(play, game, gamePlayer, gamePlayerMapById, playMetadata, callback) {
-    game.setMetadata([
-      {key: 'deck', value: cards.getSparDeck(), system: true},
-      {key: 'dealer', value: gamePlayer.pk},
-      {key: 'turnGamePlayer', value: gamePlayer.pk},
-      {key: 'leadGamePlayer', value: gamePlayer.pk},
-      {key: 'leadCard', value: null},
-      {key: 'cardsLeftToPlay', value: null}], function(err, result) {
-        game.session = 0;
-        game.status = "undealt";
-        game.save();
-        callback(err, result);
-      });
-  };
+exports.InitHandler = {
+  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, t, callback) {
+    console.log(gamePlayer+ "*********************");
+    game.setAllMetadata({
+      "deck": cards.getSparDeck(),
+      "dealer": gamePlayer.get("uuid"),
+      "turnGamePlayer": gamePlayer.get("uuid"),
+      "leadGamePlayer": gamePlayer.get("uuid"),
+      "session": 0,
+      "status": "undealt"});
+    game.save(null, {transacting: t}).then(function(game) {
+      console.log("Game Initialized: " + game + "********************************");
+      callback("", {});
+    }).catch(function(err) {
+      callback(err, {});
+    });
+  }
 };
