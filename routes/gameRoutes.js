@@ -158,22 +158,18 @@ exports.getCards = function(req, res, models, io) {
     } else if(gamePlayer.get("player_id") != playerId) {
       res.send(500, util.format("Not allowed to send plays for: %s", gamePlayerPk));
     } else {
-      var gameMetadata = gamePlayer.related("game").getAllMetadata();
-      console.log("In getCards**************************: " + JSON.stringify(gameMetadata));
-      if (gameMetadata.hands == null || gameMetadata.hands == undefined) {
-        return res.send([]);
-      }
-      var hands = gameMetadata.hands[gameMetadata.session];
-      console.log(hands + "**************");
+      var hands = {}
+      var game = gamePlayer.related("game");
+      game.related("gamePlayers").forEach(function(gamePlayer) {
+        var gamePlayerHand = gamePlayer.getMetadata("hands")[game.getMetadata("session")];
 
-      for (var handGamePlayerPk in hands) {
-        var gamePlayerHand = hands[handGamePlayerPk];
         for (var i = 0; i < gamePlayerHand.length; i++) {
           if (gamePlayerHand[i].modifier != "show-dry") {
             gamePlayerHand[i].card = null;
           }
         }
-      }
+        hands[gamePlayer.get("uuid")] = gamePlayerHand;
+      });
       res.send(hands);
     }
   });

@@ -2,7 +2,7 @@ var cards = require("../cards");
 var util = require("util");
 
 exports.DealHandler = {
-  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, t, callback) {
+  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, models, t, callback) {
     var gameMetadata = game.getAllMetadata();
 
     if (gameMetadata.dealer != gamePlayer.get("uuid")) {
@@ -20,11 +20,7 @@ exports.DealHandler = {
       gameMetadata.deck = cards.getSparDeck();
     }
     var deck = gameMetadata.deck;
-    var playerHands = createHands (activeGamePlayers, deck);
-    if (gameMetadata.hands == null || gameMetadata.hands == undefined) {
-      gameMetadata.hands = {}
-    }
-    gameMetadata.hands[session] = playerHands;
+    createHands (session, activeGamePlayers, deck);
 
     var cardsNeeded = activeGamePlayers.length * 5;
     deck = deck.slice(cardsNeeded);
@@ -38,16 +34,19 @@ exports.DealHandler = {
     }
     gameMetadata.deck = deck;
     game.setAllMetadata(gameMetadata);
-    console.log(game.getMetadata("status") + "*********************");
     game.save(null, {transacting: t}).then(function(game) {
-      callback("", {session: session, turnGamePlayer: gameMetadata.turnGamePlayer});
+      models.GamePlayer.collection(activeGamePlayers).invokeThen('save', null, {transacting: t}).then(function(a) {
+        callback("", {session: session, turnGamePlayer: gameMetadata.turnGamePlayer})
+      }).catch(function(err) {
+        callback(err, {});
+      });
     }).catch(function(err) {
       callback(err, {});
     });
   }
 };
 
-function createHands (activeGamePlayers, deck) {
+function createHands (session, activeGamePlayers, deck) {
   var hands = {};
   for (var i = 0; i < activeGamePlayers.length; i++) {
     var hand = deck.slice(0,5);
@@ -55,7 +54,9 @@ function createHands (activeGamePlayers, deck) {
     for (var j = 0; j < hand.length; j++) {
       handObject[j] = {card: hand[j], play: "unplayed", modifier: "drop", index: j + 1};
     }
-    hands[activeGamePlayers[i].get("uuid")] = handObject;
+    var activeGamePlayerMetadata = activeGamePlayers[i].getAllMetadata();
+    activeGamePlayerMetadata.hands[session] = handObject;
+    activeGamePlayers[i].setAllMetadata(activeGamePlayerMetadata);
     deck = deck.slice(5);
   }
   return hands;

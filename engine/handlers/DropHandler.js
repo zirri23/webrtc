@@ -8,7 +8,7 @@ var pointsMap = {
 };
 
 exports.DropHandler = {
-  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, playMetadata, t, callback) {
+  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, playMetadata, models, t, callback) {
     game.getMetadata(["turnGamePlayer", "leadCard", "leadGamePlayer", "dealer",
                       "cardsLeftToPlay"], function(err, gameMetadata) {
       if (game.status != "ready") {

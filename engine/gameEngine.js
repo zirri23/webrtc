@@ -43,6 +43,7 @@ exports.handlePlay = function(gamePlayer, type, metadata, models, t, callback) {
         game,
         gamePlayer,
         gamePlayerMap,
+        models,
         t,
         function(err, details) {
           callback(err, details);
