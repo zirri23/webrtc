@@ -17,8 +17,7 @@ var playHandlerMap = {
   "show-dry": DryHandler,
 };
 
-exports.handlePlay = function(gamePlayer, type, metadata, models, t, callback) {
-  var game = gamePlayer.related('game');
+exports.handlePlay = function(gamePlayer, game, type, metadata, models, t, callback) {
   var gamePlayers = game.related('gamePlayers');
 
   var gamePlayerMap = {};

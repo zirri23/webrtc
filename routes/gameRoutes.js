@@ -14,8 +14,8 @@ exports.createGame = function(req, res, models, io, t) {
       uuid: uuid.v4()
     }).save(null, {transacting: t}).then(function(gamePlayer) {
       gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
-        engine.handlePlay(gamePlayer, "init", {}, models, t, function(err, result) {
-          engine.handlePlay(gamePlayer, "join", {}, models, t, function(err, result) {
+        engine.handlePlay(gamePlayer, gamePlayer.related("game"), "init", {}, models, t, function(err, result) {
+          engine.handlePlay(gamePlayer, gamePlayer.related("game"), "join", {}, models, t, function(err, result) {
             if (!err) {
               t.commit();
               res.redirect("/playGame?gameId=" + game.get("uuid"));
@@ -62,7 +62,7 @@ exports.joinGame = function(req, res, models, io, t) {
     if (gamePlayer) {
       t.commit();
       res.redirect(util.format("/playGame?gameId=%s", gamePk));
-    } else models.Game.where({uuid: gamePk}).fetch({transacting: t}).then(function (game) {
+    } else models.Game.where({uuid: gamePk}).fetch({withRelated: ["gamePlayers"], transacting: t}).then(function (game) {
       models.GamePlayer.forge({
         game_id: game.get("id"),
         game_uuid: gamePk,
@@ -70,8 +70,20 @@ exports.joinGame = function(req, res, models, io, t) {
         player_uuid: req.user.get("uuid"),
         uuid: uuid.v4()
       }).save(null, {transacting: t}).then(function (gamePlayer) {
-        t.commit();
-        res.redirect("/playGame?gameId=" + gamePk);
+        engine.handlePlay(gamePlayer, game, "join", {}, models, t, function(err, result) {
+          if (!err) {
+            t.commit();
+            gamePlayer.set("player", req.user);
+            sockets.broadcastMessage(io, 'room change', game.get("uuid"), {
+              present: true,
+              gamePlayer: gamePlayer.toJSON(),
+            });
+            res.redirect("/playGame?gameId=" + game.get("uuid"));
+          } else {
+            t.rollback();
+            res.send(500, "Unable to join Game " + JSON.stringify(err));
+          }
+        });
       }).catch(function (err) {
         t.rollback();
         res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
@@ -126,7 +138,7 @@ exports.sendPlay = function(req, res, models, io, t) {
       t.rollback();
       res.send(500, util.format("Not allowed to send plays for: %s", gamePlayerPk));
     } else {
-      engine.handlePlay(gamePlayer, req.body.type, req.body.metadata, models, t, function(err, details){
+      engine.handlePlay(gamePlayer, gamePlayer.related("game"), req.body.type, req.body.metadata, models, t, function(err, details){
         if (err) {
           t.rollback();
           res.send(500, err);
@@ -138,7 +150,7 @@ exports.sendPlay = function(req, res, models, io, t) {
             type: req.body.type,
             time: new Date().getTime(),
             senderPk: gamePlayer.get("uuid"),
-            remoteAvatar: req.body.remoteAvatar
+            avatar: req.body.avatar
           });
           res.send(200);
         }

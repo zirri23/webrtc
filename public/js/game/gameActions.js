@@ -1,9 +1,9 @@
-socket.emit('set game', {
-  game: '{{ game.uuid }}',
-  gamePlayer: '{{ gamePlayer.uuid }}',
-  player: '{{ player.uuid }}',
-  name: '{{ player.name }}',
-  avatar: '{{ player.avatar }}' || DEFAULT_PROFILE_PIC});
+socket.emit("set game", {
+  game: "{{ game.uuid }}",
+  gamePlayer: "{{ gamePlayer.uuid }}",
+  player: "{{ player.uuid }}",
+  name: "{{ player.name }}",
+  avatar: "{{ player.avatar }}" || DEFAULT_PROFILE_PIC});
 
 console.log("{{gamePlayer.game_id}}");
 
@@ -56,18 +56,18 @@ function processDrops() {
 }
 
 function showDealButton() {
-  $("deal-button").removeAttr('disabled');
+  $("deal-button").removeAttr("disabled");
   $("#deal-button").show("slow");
   $("#deal-button").click(function(){
-    $("deal-button").attr('disabled','disabled');
+    $("deal-button").attr("disabled","disabled");
     $.post("/sendPlay/", {
-      _csrf: '{{ csrfToken }}',
+      _csrf: "{{ csrfToken }}",
       gamePk: game.uuid,
       gamePlayerPk: "{{ gamePlayer.uuid }}",
       type: "deal",
       metadata: [],
-      name: '{{ player.name }}',
-      avatar: '{{ player.avatar }}'})
+      name: "{{ player.name }}",
+      avatar: "{{ player.avatar }}"})
      .success(function(data) {
        $("#deal-button").fadeOut("slow");
      })
@@ -171,7 +171,7 @@ function flip(oldFace, container, newData) {
 
 function getCards(session) {
   $.post("/getCards/", {
-    _csrf: '{{ csrfToken }}',
+    _csrf: "{{ csrfToken }}",
     gamePlayerPk: "{{ gamePlayer.uuid }}",
     gamePk: "{{ game.uuid }}",
     session: session})
@@ -211,13 +211,13 @@ $(".play-action").drops({
   hoverClass: "play-action-hilighted",
   drop: function() {
     $.post("/sendPlay/", {
-      _csrf: '{{ csrfToken }}',
+      _csrf: "{{ csrfToken }}",
       gamePk: game.uuid,
       gamePlayerPk: "{{ gamePlayer.uuid }}",
       type: window.droppable.attr("id"),
-      metadata: [{key: 'cards', value: [window.draggable.find("img").attr("name")]}],
-      name: '{{ player.name }}',
-      avatar: '{{ player.avatar }}' || DEFAULT_PROFILE_PIC})
+      metadata: [{key: "cards", value: [window.draggable.find("img").attr("name")]}],
+      name: "{{ player.name }}",
+      avatar: "{{ player.avatar }}" || DEFAULT_PROFILE_PIC})
       .error(function(err){
         console.log(err);
         alert(err.responseText);
@@ -231,20 +231,20 @@ $("#textInput").keypress(
      : (event.which ? event.which : event.charCode));
    if (keycode == 13) {
     event.preventDefault();
-    
+
     $.post("/sendChatMessage/", {
-      _csrf: '{{ csrfToken }}',
+      _csrf: "{{ csrfToken }}",
       gamePk: game.uuid,
       gamePlayerPk: "{{ gamePlayer.uuid }}",
       message: message,
-      name: '{{ player.name }}',
-      avatar: '{{ player.avatar }}' || DEFAULT_PROFILE_PIC})
+      name: "{{ player.name }}",
+      avatar: "{{ player.avatar }}" || DEFAULT_PROFILE_PIC})
      .error(function(err) {
        alert(err.responseText);
      })
      .success(function(data) {
-       $('#messages').animate({
-         scrollTop: $('#messages').get(0).scrollHeight }, 500);
+       $("#messages").animate({
+         scrollTop: $("#messages").get(0).scrollHeight }, 500);
        $("#textInput").text("");
      });
   }
@@ -258,7 +258,7 @@ function processDrop(gamePlayerPk, avatar, cards) {
     cardImage.attr("src", sprintf("img/cards/svg/%s.svg", cards[i].card || cards[i]));
     cardImage.css("z-index", ++maxZIndex);
     cardImage.css("-webkit-transform", sprintf("rotateZ(%sdeg)", getRandom(20)));
-    
+
     var dropHolder = $(sprintf("#%s-drops", gamePlayerPk));
     dropHolder.find(".player-drop-cards").append(cardImage);
     dropHolder.find(".board-pic").attr("src", avatar);
@@ -287,12 +287,12 @@ $("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
     return;
   }
   $.post("/sendPlay/", {
-    _csrf: '{{ csrfToken }}',
+    _csrf: "{{ csrfToken }}",
     gamePk: game.uuid,
     gamePlayerPk: "{{ gamePlayer.uuid }}",
     type: "ready",
-    name: '{{ player.name }}',
-    avatar: '{{ player.avatar }}' || DEFAULT_PROFILE_PIC})
+    name: "{{ player.name }}",
+    avatar: "{{ player.avatar }}" || DEFAULT_PROFILE_PIC})
     .error(function(err){
       console.log(err);
       alert(err.responseText);
