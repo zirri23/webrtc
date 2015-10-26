@@ -8,7 +8,7 @@ var envs = {
 		},
     "prod" : {
         client: 'mysql',
-        debug: true,
+        debug: false,
       connection: {
         host     : '127.0.0.1',
         user     : 'webrtc',

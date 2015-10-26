@@ -215,7 +215,7 @@ $(".play-action").drops({
       gamePk: game.uuid,
       gamePlayerPk: "{{ gamePlayer.uuid }}",
       type: window.droppable.attr("id"),
-      metadata: [{key: "cards", value: [window.draggable.find("img").attr("name")]}],
+      metadata: {"cards": [window.draggable.find("img").attr("name")]},
       name: "{{ player.name }}",
       avatar: "{{ player.avatar }}" || DEFAULT_PROFILE_PIC})
       .error(function(err){
@@ -252,7 +252,7 @@ $("#textInput").keypress(
 
 function processDrop(gamePlayerPk, avatar, cards) {
   for (var i = 0; i < cards.length; i++) {
-    $(sprintf("#%s", gamePlayerPk)).find(sprintf(".card%s", cards[i].index)).hide("fast");
+    $(sprintf("#%s", gamePlayerPk)).find(sprintf(".card%s", cards[i].index + 1)).hide("fast");
     var cardImage = $("#drop-card").clone();
     cardImage.removeAttr("id");
     cardImage.attr("src", sprintf("img/cards/svg/%s.svg", cards[i].card || cards[i]));
@@ -269,7 +269,7 @@ function processDrop(gamePlayerPk, avatar, cards) {
 
 function processDry(gamePlayerPk, avatar, cards, playType) {
   for (var i = 0; i < cards.length; i++) {
-    var cardHolder = $(sprintf("#%s", gamePlayerPk)).find(sprintf(".card%s", cards[i].index));
+    var cardHolder = $(sprintf("#%s", gamePlayerPk)).find(sprintf(".card%s", cards[i].index + 1));
     cardHolder.find(sprintf(".%s", playType)).show("fast");
     if (cards[i].card) {
       cardHolder.find("img").attr("src", sprintf("img/cards/svg/%s.svg", cards[i].card));

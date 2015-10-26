@@ -174,10 +174,11 @@ exports.getCards = function(req, res, models, io) {
       var game = gamePlayer.related("game");
       game.related("gamePlayers").forEach(function(gamePlayer) {
         var gamePlayerHand = gamePlayer.getMetadata("hands")[game.getMetadata("session")];
-
-        for (var i = 0; i < gamePlayerHand.length; i++) {
-          if (gamePlayerHand[i].modifier != "show-dry") {
-            gamePlayerHand[i].card = null;
+        if (gamePlayer.get("uuid") !== gamePlayerPk) {
+          for (var i = 0; i < gamePlayerHand.length; i++) {
+            if (gamePlayerHand[i].modifier != "show-dry") {
+              gamePlayerHand[i].card = null;
+            }
           }
         }
         hands[gamePlayer.get("uuid")] = gamePlayerHand;

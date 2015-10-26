@@ -50,9 +50,9 @@ function createHands (session, activeGamePlayers, deck) {
   var hands = {};
   for (var i = 0; i < activeGamePlayers.length; i++) {
     var hand = deck.slice(0,5);
-    var handObject = {};
+    var handObject = [];
     for (var j = 0; j < hand.length; j++) {
-      handObject[j] = {card: hand[j], play: "unplayed", modifier: "drop", index: j + 1};
+      handObject[j] = {card: hand[j], play: "unplayed"};
     }
     var activeGamePlayerMetadata = activeGamePlayers[i].getAllMetadata();
     activeGamePlayerMetadata.hands[session] = handObject;
