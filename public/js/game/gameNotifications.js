@@ -70,6 +70,7 @@ socket.on(sprintf("dry/%s", "{{ game.uuid }}"), function(message) {
 });
 
 socket.on(sprintf("show-dry/%s", "{{ game.uuid }}"), function(message) {
+  console.log(message);
   processDry(message.senderPk, message.avatar, message.details.cards, message.type);
 });
 

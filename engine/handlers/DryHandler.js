@@ -25,7 +25,7 @@ exports.DryHandler = {
         return;
       }
       playedCards.push({
-        card: play.type === "show-dry" ? dryCard : null,
+        card: playMetadata.type === "show-dry" ? playCard : null,
         index: hand.indexOf(cardInHand)});
       cardInHand.modifier = playMetadata.type;
     });
@@ -33,7 +33,7 @@ exports.DryHandler = {
     gamePlayer.setAllMetadata(gamePlayerMetadata);
     gamePlayer.save(null, {transacting: t}).then(function(gamePlayer) {
       callback(null,  {
-        playType: play.type,
+        playType: playMetadata.type,
         cards: playedCards,
       });
     });
