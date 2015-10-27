@@ -20,9 +20,6 @@ var playHandlerMap = {
 exports.handlePlay = function(gamePlayer, game, type, metadata, models, t, callback) {
   var gamePlayers = game.related('gamePlayers');
 
-  var gamePlayerMap = {};
-  gamePlayers.map(function(gamePlayer) { gamePlayerMap[gamePlayer.get("uuid")] = gamePlayer});
-
   var play = models.Play.forge({
     uuid: uuid.v4(),
     game_id: game.get("id"),
@@ -36,16 +33,16 @@ exports.handlePlay = function(gamePlayer, game, type, metadata, models, t, callb
   play.setMetadata("type", type);
   play.setAllMetadata(metadata);
 
-  play.save(null, {transacting: t}).then(function(play) {
-    playHandlerMap[play.getMetadata("type")].handlePlay(
-        play,
-        game,
-        gamePlayer,
-        gamePlayerMap,
-        models,
-        t,
-        function(err, details) {
+  playHandlerMap[play.getMetadata("type")].handlePlay(
+      play,
+      game,
+      gamePlayer,
+      models,
+      t,
+      function(err, details) {
+        play.setAllMetadata(details);
+        play.save(null, {transacting: t}).then(function(play) {
           callback(err, details);
         });
-  });
+      });
 };

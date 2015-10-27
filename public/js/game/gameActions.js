@@ -49,8 +49,8 @@ function processDrops() {
   for (var i = 0; i < game.plays.length; i++) {
     var play = game.plays[i];
     if (play.type === "drop") {
-      var gamePlayer = gamePlayerPkToGamePlayer[play.gamePlayerPk];
-      processDrop(play.gamePlayerPk, gamePlayer.player.avatar || DEFAULT_PROFILE_PIC, play.cards);
+      var gamePlayer = gamePlayerPkToGamePlayer[play.game_player_uuid];
+      processDrop(play.game_player_uuid, gamePlayer.player.avatar || DEFAULT_PROFILE_PIC, play.cards);
     }
   }
 }

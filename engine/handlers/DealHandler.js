@@ -2,7 +2,7 @@ var cards = require("../cards");
 var util = require("util");
 
 exports.DealHandler = {
-  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, models, t, callback) {
+  handlePlay: function(play, game, gamePlayer, models, t, callback) {
     var gameMetadata = game.getAllMetadata();
 
     if (gameMetadata.dealer != gamePlayer.get("uuid")) {

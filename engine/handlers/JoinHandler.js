@@ -1,7 +1,7 @@
 var cards = require("../cards");
 
 exports.JoinHandler = {
-  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, models, t, callback) {
+  handlePlay: function(play, game, gamePlayer, models, t, callback) {
     var handsMetadata = {};
     handsMetadata[game.getMetadata("session")] = {};
 

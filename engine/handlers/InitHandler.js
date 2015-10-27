@@ -1,7 +1,7 @@
 var cards = require("../cards");
 
 exports.InitHandler = {
-  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, models, t, callback) {
+  handlePlay: function(play, game, gamePlayer, models, t, callback) {
     game.setAllMetadata({
       "deck": cards.getSparDeck(),
       "dealer": gamePlayer.get("uuid"),

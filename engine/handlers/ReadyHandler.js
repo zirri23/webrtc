@@ -1,5 +1,5 @@
 exports.ReadyHandler = {
-  handlePlay: function(play, game, gamePlayer, gamePlayerMapById, models, t, callback) {
+  handlePlay: function(play, game, gamePlayer, models, t, callback) {
     if (game.getMetadata("status") != "dealt") {
       callback("Can't declare ready when cards are not dealt", null);
       return;
