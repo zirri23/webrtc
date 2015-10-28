@@ -33,16 +33,22 @@ exports.handlePlay = function(gamePlayer, game, type, metadata, models, t, callb
   play.setMetadata("type", type);
   play.setAllMetadata(metadata);
 
-  playHandlerMap[play.getMetadata("type")].handlePlay(
-      play,
-      game,
-      gamePlayer,
-      models,
-      t,
-      function(err, details) {
-        play.setAllMetadata(details);
-        play.save(null, {transacting: t}).then(function(play) {
-          callback(err, details);
+  // Replace gamePlayer with the one from the list. Prevents bugs
+  // caused by 2 versions of the gamePlayer existing (one standalone and one in the list)
+  gamePlayer = game.related("gamePlayers").findWhere({id: gamePlayer.get("id")}) || gamePlayer;
+
+  play.save(null, {transacting: t}).then(function(play) {
+    playHandlerMap[play.getMetadata("type")].handlePlay(
+        play,
+        game,
+        gamePlayer,
+        models,
+        t,
+        function(err, details) {
+          play.setAllMetadata(details);
+          play.save(null, {transacting: t}).then(function(play) {
+            callback(err, details);
+          });
         });
-      });
+  });
 };

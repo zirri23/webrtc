@@ -88,7 +88,12 @@ function arrangePlayers() {
 
   var count = 1;
   var playerCount = Object.keys(gamePlayerPkToGamePlayer).length;
-  for (gamePlayerPk in gamePlayerPkToGamePlayer) {
+  $(sprintf(".%splayer%s-drops", playerCount, playerCount))
+      .find(".player-drop-holder")
+      .attr("id", sprintf("%s-drops", "{{ gamePlayer.uuid }}"));
+
+
+  for (var gamePlayerPk in gamePlayerPkToGamePlayer) {
     var gamePlayer = gamePlayerPkToGamePlayer[gamePlayerPk];
     if(gamePlayer.uuid != "{{ gamePlayer.uuid }}") {
       $(sprintf(".%splayer%s-drops", playerCount, count))
@@ -179,7 +184,7 @@ function getCards(session) {
      $(".dry-badge").hide();
      for (var gamePlayer in hands) {
        var hand = hands[gamePlayer];
-       console.log(hand);
+       console.log(hands);
        for (var i = 0; i < Object.keys(hand).length; i++) {
          var card = hand[i];
          var cardHolderBox = $(sprintf("#%s", gamePlayer)).find($(sprintf(".card%s", i + 1)));
@@ -251,11 +256,12 @@ $("#textInput").keypress(
  });
 
 function processDrop(gamePlayerPk, avatar, cards) {
+  console.log(gamePlayerPk + " dropped cards: " + JSON.stringify(cards));
   for (var i = 0; i < cards.length; i++) {
     $(sprintf("#%s", gamePlayerPk)).find(sprintf(".card%s", cards[i].index + 1)).hide("fast");
     var cardImage = $("#drop-card").clone();
     cardImage.removeAttr("id");
-    cardImage.attr("src", sprintf("img/cards/svg/%s.svg", cards[i].card || cards[i]));
+    cardImage.attr("src", sprintf("img/cards/svg/%s.svg", cards[i].card));
     cardImage.css("z-index", ++maxZIndex);
     cardImage.css("-webkit-transform", sprintf("rotateZ(%sdeg)", getRandom(20)));
 

@@ -97,7 +97,6 @@ exports.joinGame = function(req, res, models, io, t) {
 
 exports.queryGames = function(req, res, models, io) {
     models.Game.where({}).fetchAll({withRelated: ["gamePlayers", "gamePlayers.player", "creator"]}).then(function(games) {
-        console.log(games.toJSON());
         res.send(games.toJSON());
     }).catch(function(err) {
         res.send(500, "Unable to create games" + JSON.stringify(err));

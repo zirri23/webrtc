@@ -25,7 +25,7 @@ function handle(server, cookieParser, sessionStore, sessionSecret) {
         ' is connected ' + userList.length + " times");
     
     socket.on('message', function (message) {
-      console.log('Got message: ', message);
+      console.log('Got message: ' + JSON.stringify(message));
       socket.broadcast.emit('message', message);
     });
   });
@@ -44,7 +44,7 @@ function onAuthorizeFail(data, message, error, accept){
 }
 
 exports.broadcastMessage = function(io, type, filter, data) {
-  console.log(data);
+  console.log("Got broadcast: " + JSON.stringify(data));
   console.log(util.format('%s/%s', type, filter));
   io.sockets.emit(util.format('%s/%s', type, filter), data);
 };

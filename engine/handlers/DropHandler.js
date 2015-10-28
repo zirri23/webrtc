@@ -11,12 +11,12 @@ exports.DropHandler = {
   handlePlay: function(play, game, gamePlayer, models, t, callback) {
     var gameMetadata = game.getAllMetadata();
     if (gameMetadata.status != "ready") {
-      callback("Can't play until everyone is ready", null);
+      callback("Can't play until everyone is ready", {});
       return;
     }
     var gamePlayerPk = gamePlayer.get("uuid");
     if (gameMetadata.turnGamePlayer != gamePlayerPk) {
-      callback("Not your turn", null);
+      callback("Not your turn", {});
       return;
     }
     var session = gameMetadata.session;
@@ -42,32 +42,34 @@ exports.DropHandler = {
     var playedCards = [];
     playMetadata.cards.map(function(card) {playedCards.push({card: card, index: hand.indexOf(cardInHand)})});
 
-    cardInHand.play = play.type;
+    cardInHand.play = play.getMetadata("type");
 
     var activeGamePlayers = game.related("gamePlayers").filter(function(gamePlayer) {
       return gamePlayer.getMetadata("status") === "ready";
     });
 
     determineLeaderAndNextTurn(activeGamePlayers, gamePlayerPk, gameMetadata, cardInHand.card);
-    var sessionComplete = isSessionComplete(isRoundComplete(gamePlayerPk, activeGamePlayers), hand);
+    var sessionComplete = isSessionComplete(isRoundComplete(gamePlayerPk, activeGamePlayers, session), hand);
     var leadGamePlayer = processScores(session, game, gameMetadata, activeGamePlayers, sessionComplete);
 
     game.setAllMetadata(gameMetadata);
     gamePlayer.setAllMetadata(gamePlayerMetadata);
 
-    game.save(null, {transacting: t}).then(function(g) {
-      gamePlayer.save(null, {transacting: t}).then(function(g) {
-        leadGamePlayer.save(null, {transacting: t}).then(function(g) {
-          callback("", {
-            isSessionOver: sessionComplete,
-            score: leadGamePlayer.getMetadata("score"),
-            playType: play.type,
-            cards: playedCards,
-            leadCard: gameMetadata.leadCard,
-            leadGamePlayer: gameMetadata.leadGamePlayer,
-            turnGamePlayer: gameMetadata.turnGamePlayer,
-            dealer: gameMetadata.dealer
-          });
+    var saveGame = game.save(null, {transacting: t});
+    var saveGamePlayer = saveGame.then(function(game) {
+      return gamePlayer.save("metadata", JSON.stringify(gamePlayerMetadata), {transacting: t, patch: true});
+    });
+    var saveLeadGamePlayer = saveGamePlayer.then(function(gamePlayer) {
+      leadGamePlayer.save(null, {transacting: t}).then(function(g) {
+        callback("", {
+          isSessionOver: sessionComplete,
+          score: leadGamePlayer.getMetadata("score"),
+          playType: play.getMetadata("type"),
+          cards: playedCards,
+          leadCard: gameMetadata.leadCard,
+          leadGamePlayer: gameMetadata.leadGamePlayer,
+          turnGamePlayer: gameMetadata.turnGamePlayer,
+          dealer: gameMetadata.dealer
         });
       });
     });
@@ -100,7 +102,7 @@ function determineLeaderAndNextTurn(activeGamePlayers, gamePlayerPk, gameMetadat
     gameMetadata.leadGamePlayer = gamePlayerPk;
     gameMetadata.leadCard = currentPlayedCard;
   }
-  var roundComplete = isRoundComplete(gamePlayerPk, activeGamePlayers);
+  var roundComplete = isRoundComplete(gamePlayerPk, activeGamePlayers, gameMetadata.session);
   if (!roundComplete) {
     var gamePlayerIndex = activeGamePlayers.findIndex(function(gp) {return gp.get("uuid") === gamePlayerPk});
     var nextIndex = (gamePlayerIndex + 1) % activeGamePlayers.length;
@@ -110,11 +112,22 @@ function determineLeaderAndNextTurn(activeGamePlayers, gamePlayerPk, gameMetadat
   }
 }
 
-function isRoundComplete(gamePlayerPk, activeGamePlayers) {
+function isRoundComplete(gamePlayerPk, activeGamePlayers, session) {
+  var played = null;
   for (var i = 0; i < activeGamePlayers.length; i++) {
     var gamePlayer = activeGamePlayers[i];
-    if (gamePlayer.get("uuid") !== gamePlayerPk && gamePlayer.getMetadata("droppedForRound")) {
-      return false;
+    if (gamePlayer.get("uuid") !== gamePlayerPk) {
+      var playCount = 0;
+      var gamePlayerMetadata = gamePlayer.getAllMetadata();
+      var hand = gamePlayerMetadata["hands"][session];
+      hand.forEach(function(card) {
+        if (card.played) {
+          playCount++
+        }
+      });
+      if (playCount != (played || playCount)) {
+        return false;
+      }
     }
   }
   return true;
@@ -133,10 +146,10 @@ function isSessionComplete(isRoundComplete, hand) {
 }
 
 function processScores(session, game, gameMetadata, gamePlayers, sessionComplete) {
-  gameMetadata.status = "undealt";
   var leadGamePlayer = gamePlayers.find(function(g) {return g.get("uuid") === gameMetadata["leadGamePlayer"]});
 
   if (sessionComplete) {
+    gameMetadata.status = "undealt";
     var gamePlayerMetadata = leadGamePlayer.getAllMetadata();
     var leadPlays = game.related("plays").filter(function(play) {
       return play.getMetadata("session") == session && play.get("game_player_uuid") === leadGamePlayer.get("uuid");

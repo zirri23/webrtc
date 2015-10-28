@@ -14,6 +14,10 @@ exports.DealHandler = {
       return ["active", "observer", "ready"].indexOf(gamePlayer.getMetadata("status")) >= 0;
     });
 
+    if(activeGamePlayers.length < 2) {
+      return callback("You need at least 2 players to deal!", {});
+    }
+
     var session = gameMetadata.session;
 
     if (gameMetadata.deck.length < cardsNeeded) {
