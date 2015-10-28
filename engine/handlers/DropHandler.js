@@ -98,7 +98,6 @@ function determineLeaderAndNextTurn(activeGamePlayers, gamePlayerPk, gameMetadat
   if (!gameMetadata.leadCard
       || cards.valueOf(currentPlayedCard).beats(cards.valueOf(gameMetadata.leadCard))
       || gameMetadata.leadGamePlayer === gamePlayerPk) {
-    var previousLeadGamePlayerPk = gameMetadata.leadGamePlayer;
     gameMetadata.leadGamePlayer = gamePlayerPk;
     gameMetadata.leadCard = currentPlayedCard;
   }
@@ -116,18 +115,18 @@ function isRoundComplete(gamePlayerPk, activeGamePlayers, session) {
   var played = null;
   for (var i = 0; i < activeGamePlayers.length; i++) {
     var gamePlayer = activeGamePlayers[i];
-    if (gamePlayer.get("uuid") !== gamePlayerPk) {
-      var playCount = 0;
-      var gamePlayerMetadata = gamePlayer.getAllMetadata();
-      var hand = gamePlayerMetadata["hands"][session];
-      hand.forEach(function(card) {
-        if (card.played) {
-          playCount++
-        }
-      });
-      if (playCount != (played || playCount)) {
-        return false;
+    var playCount = 0;
+    var hand = gamePlayer.getMetadata("hands")[session];
+    hand.forEach(function(card) {
+      if (card.play === "drop") {
+        playCount++
       }
+    });
+    if (played === null) {
+      played = playCount;
+    }
+    if (playCount != played) {
+      return false;
     }
   }
   return true;
