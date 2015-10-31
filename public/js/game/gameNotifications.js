@@ -79,3 +79,7 @@ socket.on(sprintf("ready/%s", "{{ game.uuid }}"), function(message) {
   processReady(message.senderPk, message.avatar, message.details.cards, message.type);
   sendPlayToChat(message);
 });
+
+socket.on("gameVersion", function(message) {
+  sendPlayToChat(message);
+});

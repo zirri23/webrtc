@@ -47,7 +47,10 @@ exports.handlePlay = function(gamePlayer, game, type, metadata, models, t, callb
         function(err, details) {
           play.setAllMetadata(details);
           play.save(null, {transacting: t}).then(function(play) {
-            callback(err, details);
+            game.setMetadata("version", game.getMetadata("version") + 1);
+            game.save(null, {transacting: t}).then(function(game) {
+              callback(err, details);
+            });
           });
         });
   });

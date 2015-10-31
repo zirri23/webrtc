@@ -33,7 +33,7 @@ function route(app, Bookshelf, io) {
   app.post('/sendChatMessage', ensureLoggedIn('/login'), withTransaction(gameRoutes.sendChatMessage));
   app.post('/sendPlay', ensureLoggedIn('/login'), withTransaction(gameRoutes.sendPlay));
   app.post('/getCards', ensureLoggedIn('/login'), withTransaction(gameRoutes.getCards));
-  app.post('/getGameVersion', ensureLoggedIn('/login'), withTransaction(gameRoutes.getGameVersion));
+  app.post('/getGameVersion', withoutTransaction(gameRoutes.getGameVersion));
 }
 
 post = function(url, route) {

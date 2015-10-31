@@ -8,6 +8,7 @@ exports.InitHandler = {
       "turnGamePlayer": gamePlayer.get("uuid"),
       "leadGamePlayer": gamePlayer.get("uuid"),
       "session": 0,
+      "version": 0,
       "status": "undealt"});
     game.save(null, {transacting: t}).then(function(game) {
       callback("", {});

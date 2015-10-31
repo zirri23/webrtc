@@ -96,11 +96,11 @@ exports.joinGame = function(req, res, models, io, t) {
 };
 
 exports.queryGames = function(req, res, models, io) {
-    models.Game.where({}).fetchAll({withRelated: ["gamePlayers", "gamePlayers.player", "creator"]}).then(function(games) {
-        res.send(games.toJSON());
-    }).catch(function(err) {
-        res.send(500, "Unable to create games" + JSON.stringify(err));
-    });
+  models.Game.where({}).fetchAll({withRelated: ["gamePlayers", "gamePlayers.player", "creator"]}).then(function(games) {
+      res.send(games.toJSON());
+  }).catch(function(err) {
+      res.send(500, "Unable to create games" + JSON.stringify(err));
+  });
 };
 
 exports.sendChatMessage = gamePlayerDependent([], function(req, res, models, io, t, gamePlayer) {
@@ -154,9 +154,12 @@ exports.getCards = gamePlayerDependent(["game", "game.gamePlayers"], function(re
   res.send(hands);
 });
 
-exports.getGameVersion = gamePlayerDependent(["game"], function(req, res, models, io, t, gamePlayer) {
-  res.send(gamePlayer.related("game").getMetadata("version"));
-});
+exports.getGameVersion = function(req, res, models, io) {
+  models.Game.where({uuid: req.body.gamePk}).fetch().then(function(game) {
+    console.log(game.getMetadata("version"));
+    res.send({version: game.getMetadata("version")});
+  });
+};
 
 function gamePlayerDependent(relatedFields, callback) {
   return function(req, res, models, io, t) {
@@ -165,14 +168,14 @@ function gamePlayerDependent(relatedFields, callback) {
     var gamePk = req.body.gamePk;
 
     models.GamePlayer.where({uuid: gamePlayerPk}).fetch({withRelated: relatedFields, transacting: t}).then(
-        function(gamePlayer) {
-          if (!gamePlayer) {
-            res.send(500, util.format("%s is not a member of this game", gamePk));
-          } else if (gamePlayer.get("player_id") != playerId) {
-            res.send(500, util.format("Not allowed to play for: %s", gamePlayerPk));
-          } else {
-            callback(req, res, models, io, t, gamePlayer);
-          }
-        });
+      function(gamePlayer) {
+        if (!gamePlayer) {
+          res.send(500, util.format("%s is not a member of this game", gamePk));
+        } else if (gamePlayer.get("player_id") != playerId) {
+          res.send(500, util.format("Not allowed to play for: %s", gamePlayerPk));
+        } else {
+          callback(req, res, models, io, t, gamePlayer);
+        }
+      });
   };
 }

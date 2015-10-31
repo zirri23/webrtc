@@ -73,7 +73,7 @@ function showDealButton() {
        $("#deal-button").fadeOut("slow");
      })
      .error(function(err){
-       alert(err.responseText);
+       sendPlayToChat({sender: "Moderator", type: err.responseText, time: new Date().getTime()});
      });
   });
 }
@@ -185,7 +185,6 @@ function getCards(session) {
      $(".dry-badge").hide();
      for (var gamePlayer in hands) {
        var hand = hands[gamePlayer];
-       console.log(hands);
        for (var i = 0; i < Object.keys(hand).length; i++) {
          var card = hand[i];
          var cardHolderBox = $(sprintf("#%s", gamePlayer)).find($(sprintf(".card%s", i + 1)));
@@ -257,7 +256,6 @@ $("#textInput").keypress(
  });
 
 function processDrop(gamePlayerPk, avatar, cards) {
-  console.log(gamePlayerPk + " dropped cards: " + JSON.stringify(cards));
   for (var i = 0; i < cards.length; i++) {
     $(sprintf("#%s", gamePlayerPk)).find(sprintf(".card%s", cards[i].index + 1)).hide("fast");
     var cardImage = $("#drop-card").clone();
