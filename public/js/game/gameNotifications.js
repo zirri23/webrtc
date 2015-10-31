@@ -1,5 +1,6 @@
 socket.on(sprintf("room change/%s", "{{ game.uuid }}"), function(message) {
   console.log(message.gamePlayer.uuid);
+  window.game.version = message.details.version;
   gamePlayerPkToGamePlayer[message.gamePlayer.uuid] = message.gamePlayer;
   arrangePlayers();
 });
@@ -55,6 +56,8 @@ socket.on(sprintf("deal/%s", "{{ game.uuid }}"), function(message) {
 });
 
 socket.on(sprintf("drop/%s", "{{ game.uuid }}"), function(message) {
+  alert
+  window.game.version = message.details.version;
   processDrop(message.senderPk, message.avatar, message.details.cards);
   updateGameStatus(
       message.details.turnGamePlayer,
@@ -67,19 +70,18 @@ socket.on(sprintf("drop/%s", "{{ game.uuid }}"), function(message) {
 
 socket.on(sprintf("dry/%s", "{{ game.uuid }}"), function(message) {
   console.log(message);
+  window.game.version = message.details.version;
   processDry(message.senderPk, message.avatar, message.details.cards, message.type);
 });
 
 socket.on(sprintf("show-dry/%s", "{{ game.uuid }}"), function(message) {
   console.log(message);
+  window.game.version = message.details.version;
   processDry(message.senderPk, message.avatar, message.details.cards, message.type);
 });
 
 socket.on(sprintf("ready/%s", "{{ game.uuid }}"), function(message) {
+  window.game.version = message.details.version;
   processReady(message.senderPk, message.avatar, message.details.cards, message.type);
-  sendPlayToChat(message);
-});
-
-socket.on("gameVersion", function(message) {
   sendPlayToChat(message);
 });

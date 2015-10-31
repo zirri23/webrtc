@@ -19,6 +19,28 @@ for (var i = 0; i < game.gamePlayers.length; i++) {
   gamePlayerPkToGamePlayer[gamePlayer.uuid] = gamePlayer;
 }
 
+var versionChecker = setInterval(function() {
+  $.post("/getGameVersion/", {
+    _csrf: "{{ csrfToken }}",
+    gamePlayerPk: "{{ gamePlayer.uuid }}",
+    gamePk: "{{ game.uuid }}",
+  })
+  .success(function(data) {
+    if (data.version !== window.game.version) {
+      console.log("forced refresh");
+      arrangePlayers();
+      processDrops();
+      getCards(game.session);
+      window.game.version = data.version;
+    }
+    console.log("The game version is: " + data.version);
+  })
+  .error(function(err) {
+    clearInterval(versionChecker);
+    console.log(err);
+  })
+}, 5000);
+
 arrangePlayers();
 processDrops();
 getCards(game.session);

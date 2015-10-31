@@ -17,12 +17,10 @@ var GOOGLE_CALLBACK_URL = {
 
 exports.initSignups = function(env, Bookshelf) {
   passport.serializeUser(function(player, done) {
-  	console.log("serializing user: " + player.id);
     done(null, player.id);
   });
 
   passport.deserializeUser(function(id, done) {
-  	console.log("deserializing user: " + id);
   	Bookshelf.Player.where('id', id).fetch().then(function (player) {
       done(null, player);
     }).catch(function(err) {

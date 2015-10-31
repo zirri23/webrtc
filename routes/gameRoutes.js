@@ -18,7 +18,7 @@ exports.createGame = function(req, res, models, io, t) {
           engine.handlePlay(gamePlayer, gamePlayer.related("game"), "join", {}, models, t, function(err, result) {
             if (!err) {
               t.commit();
-              res.redirect("/playGame?gameId=" + game.get("uuid"));
+              res.send({gameId: game.get("uuid")});
             } else {
               t.rollback();
               res.send(500, "Unable to create Game " + JSON.stringify(err));
@@ -56,12 +56,12 @@ exports.playGame = function(req, res, models, io) {
 
 exports.joinGame = function(req, res, models, io, t) {
   var playerId = req.user.id;
-  var gamePk = req.query.gameId;
+  var gamePk = req.body.gameId;
 
   models.GamePlayer.where({game_uuid: gamePk, player_id: playerId}).fetch({transacting: t}).then(function(gamePlayer) {
     if (gamePlayer) {
       t.commit();
-      res.redirect(util.format("/playGame?gameId=%s", gamePk));
+      res.send({gameId: gamePk});
     } else models.Game.where({uuid: gamePk}).fetch({withRelated: ["gamePlayers"], transacting: t}).then(function (game) {
       models.GamePlayer.forge({
         game_id: game.get("id"),
@@ -76,9 +76,10 @@ exports.joinGame = function(req, res, models, io, t) {
             gamePlayer.set("player", req.user);
             sockets.broadcastMessage(io, 'room change', game.get("uuid"), {
               present: true,
+              details: result,
               gamePlayer: gamePlayer.toJSON(),
             });
-            res.redirect("/playGame?gameId=" + game.get("uuid"));
+            res.send({gameId: gamePk});
           } else {
             t.rollback();
             res.send(500, "Unable to join Game " + JSON.stringify(err));
@@ -89,6 +90,7 @@ exports.joinGame = function(req, res, models, io, t) {
         res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
       });
     }).catch(function (err) {
+      console.log(err);
       t.rollback();
       res.send(500, util.format("%s is not a member of this game", req.user.get("uuid")));
     });
@@ -111,6 +113,7 @@ exports.sendChatMessage = gamePlayerDependent([], function(req, res, models, io,
     senderPk: gamePlayer.get("uuid"),
     avatar: req.body.avatar
   });
+  t.commit();
   res.send(200);
 });
 
@@ -151,6 +154,7 @@ exports.getCards = gamePlayerDependent(["game", "game.gamePlayers"], function(re
     }
     hands[gamePlayer.get("uuid")] = gamePlayerHand;
   });
+  t.commit();
   res.send(hands);
 });
 
@@ -170,8 +174,10 @@ function gamePlayerDependent(relatedFields, callback) {
     models.GamePlayer.where({uuid: gamePlayerPk}).fetch({withRelated: relatedFields, transacting: t}).then(
       function(gamePlayer) {
         if (!gamePlayer) {
+          t.rollback();
           res.send(500, util.format("%s is not a member of this game", gamePk));
         } else if (gamePlayer.get("player_id") != playerId) {
+          t.rollback();
           res.send(500, util.format("Not allowed to play for: %s", gamePlayerPk));
         } else {
           callback(req, res, models, io, t, gamePlayer);

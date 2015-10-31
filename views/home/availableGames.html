@@ -98,25 +98,31 @@ $(document).ready(function() {
 	           $("#opponents-holder-modal").append(opponent);
 	         }
 	         $('#myModal').find("#join-game").click(function() {
-	           window.location = sprintf("/joinGame?gameId=%s", game.uuid);
+             $.post("/joinGame/", {
+               _csrf: "{{ csrfToken }}",
+               gameId: game.uuid
+             })
+             .success(function(data) {
+               window.location.href = "/playGame?gameId=" + data.gameId;
+             })
+             .error(function(err){
+               console.log(err);
+               alert(err.responseText);
+             });
 	         });
 	         $('#myModal').modal("show");
 	       });
-
-         $(sprintf("#join_%s", game.uuid)).click(function(){
-             console.log("room change");
-         });
          }
 	   });
 	}
 
-	function createOpponent(game, gamePlayer) {
-	 var opponent = cloneById("opponent", sprintf("opponent_%s_%s", game.uuid, gamePlayer.uuid));
-   opponent.find("img").attr("src", gamePlayer.player.avatar || DEFAULT_PROFILE_PIC);
-   opponent.find("img").attr("title", gamePlayer.player.name);
-   opponent.show();
-   return opponent;
-	}
+    function createOpponent(game, gamePlayer) {
+        var opponent = cloneById("opponent", sprintf("opponent_%s_%s", game.uuid, gamePlayer.uuid));
+        opponent.find("img").attr("src", gamePlayer.player.avatar || DEFAULT_PROFILE_PIC);
+        opponent.find("img").attr("title", gamePlayer.player.name);
+        opponent.show();
+        return opponent;
+    }
 	
 	refreshGames();
 });
