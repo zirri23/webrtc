@@ -225,7 +225,7 @@ $(".play-action").drops({
       avatar: "{{ player.avatar }}" || DEFAULT_PROFILE_PIC})
       .error(function(err){
         console.log(err);
-        alert(err.responseText);
+        sendPlayToChat({sender: "Moderator", type: err.responseText, time: new Date().getTime()});
       });
   }});
 
@@ -285,6 +285,7 @@ function processDry(gamePlayerPk, avatar, cards, playType) {
 
 function processReady(gamePlayerPk, avatar, cards, playType) {
   $(sprintf("#%s", gamePlayerPk)).find(".readyButton").removeClass("not-ready");
+  $(sprintf("#%s", gamePlayerPk)).find(".readyButton").removeClass("player-not-ready");
   gamePlayerPkToGamePlayer[gamePlayerPk].status = "ready";
 }
 
