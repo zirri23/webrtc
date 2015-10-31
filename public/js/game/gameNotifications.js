@@ -1,4 +1,5 @@
 socket.on(sprintf("room change/%s", "{{ game.uuid }}"), function(message) {
+  console.log(message.gamePlayer.uuid);
   gamePlayerPkToGamePlayer[message.gamePlayer.uuid] = message.gamePlayer;
   arrangePlayers();
 });

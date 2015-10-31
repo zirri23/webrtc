@@ -6,7 +6,7 @@ exports.JoinHandler = {
     handsMetadata[game.getMetadata("session")] = {};
 
     gamePlayer.setAllMetadata({
-      "status": (game.getMetadata("status") === "dealt" ? "observer" : "active"),
+      "status": (["dealt", "ready"].indexOf(game.getMetadata("status")) >= 0 ? "observer" : "active"),
       "hands": handsMetadata,
       "score": 0,
       "won": 0

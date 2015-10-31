@@ -10,16 +10,12 @@ exports.ReadyHandler = {
         return "active" == gamePlayer.getMetadata("status");
       });
 
-      if (nonReadyGamePlayers.length == 0) {
-        game.setMetadata("status", "ready");
-        game.save(null, {transacting: t}).then(function(game) {
-          callback(null, {status: game.status});
-        }).catch(function(err) {
-          callback(err, {});
-        });
-      } else {
+      game.setMetadata("status", (nonReadyGamePlayers.length == 0 ? "ready" : "dealt"));
+      game.save(null, {transacting: t}).then(function(game) {
         callback(null, {status: game.status});
-      }
+      }).catch(function(err) {
+        callback(err, {});
+      });
     });
   }
 };

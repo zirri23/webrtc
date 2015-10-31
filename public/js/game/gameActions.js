@@ -285,6 +285,7 @@ function processDry(gamePlayerPk, avatar, cards, playType) {
 
 function processReady(gamePlayerPk, avatar, cards, playType) {
   $(sprintf("#%s", gamePlayerPk)).find(".readyButton").removeClass("not-ready");
+  gamePlayerPkToGamePlayer[gamePlayerPk].status = "ready";
 }
 
 

@@ -1,14 +1,14 @@
 var envs = {
 		"dev" : {
             client: 'sqlite3',
-            debug: true,
+            debug: false,
 		  connection: {
 		  	"filename": "./app.sqlite",
 		  }
 		},
     "prod" : {
         client: 'mysql',
-        debug: true,
+        debug: false,
       connection: {
         host     : '127.0.0.1',
         user     : 'webrtc',
