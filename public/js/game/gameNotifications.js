@@ -44,6 +44,7 @@ function sendPlayToChat(message) {
 
 socket.on(sprintf("deal/%s", "{{ game.uuid }}"), function(message) {
   game.status = "dealt";
+  window.game.version = message.details.version;
   for (gamePlayer in gamePlayerPkToGamePlayer) {
     gamePlayerPkToGamePlayer[gamePlayer].status = "active";
   }

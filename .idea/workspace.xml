@@ -2,14 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="207e0bce-9802-401b-aa85-dd71454c6a2d" name="Default" comment="Resurrected old code. Most things working except plays">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/views/home/availableGames.html" afterPath="$PROJECT_DIR$/views/home/availableGames.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/js/game/gameActions.js" afterPath="$PROJECT_DIR$/public/js/game/gameActions.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/engine/gameEngine.js" afterPath="$PROJECT_DIR$/engine/gameEngine.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/js/game/gameNotifications.js" afterPath="$PROJECT_DIR$/public/js/game/gameNotifications.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/routes/gameRoutes.js" afterPath="$PROJECT_DIR$/routes/gameRoutes.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/views/home/index.html" afterPath="$PROJECT_DIR$/views/home/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/signup.js" afterPath="$PROJECT_DIR$/signup.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/routes/urls.js" afterPath="$PROJECT_DIR$/routes/urls.js" />
     </list>
     <ignored path="webrtc.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -30,11 +23,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="gameRoutes.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="gameRoutes.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/routes/gameRoutes.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.1491935">
-              <caret line="95" column="7" selection-start-line="95" selection-start-column="7" selection-end-line="95" selection-end-column="7" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="40" column="29" selection-start-line="40" selection-start-column="29" selection-end-line="40" selection-end-column="29" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="game.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/views/game/game.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-25.625">
+              <caret line="41" column="6" selection-start-line="41" selection-start-column="6" selection-end-line="41" selection-end-column="6" />
               <folding />
             </state>
           </provider>
@@ -53,7 +56,7 @@
       <file leaf-file-name="gameActions.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/public/js/game/gameActions.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-7.148148">
+            <state vertical-scroll-proportion="-131.59259">
               <caret line="266" column="32" selection-start-line="266" selection-start-column="32" selection-end-line="266" selection-end-column="32" />
               <folding />
             </state>
@@ -104,21 +107,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="gameNotifications.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="gameNotifications.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/public/js/game/gameNotifications.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="58" column="7" selection-start-line="58" selection-start-column="7" selection-end-line="58" selection-end-column="7" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="signup.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/signup.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="23" column="26" selection-start-line="23" selection-start-column="26" selection-end-line="23" selection-end-column="26" />
+            <state vertical-scroll-proportion="0.5080645">
+              <caret line="46" column="48" selection-start-line="46" selection-start-column="48" selection-end-line="46" selection-end-column="48" />
               <folding />
             </state>
           </provider>
@@ -169,13 +162,13 @@
         <option value="$PROJECT_DIR$/app.js" />
         <option value="$PROJECT_DIR$/sockets.js" />
         <option value="$PROJECT_DIR$/signup.js" />
-        <option value="$PROJECT_DIR$/public/js/game/gameNotifications.js" />
         <option value="$PROJECT_DIR$/engine/gameEngine.js" />
         <option value="$PROJECT_DIR$/public/js/game/gameActions.js" />
         <option value="$PROJECT_DIR$/views/home/index.html" />
         <option value="$PROJECT_DIR$/routes/urls.js" />
         <option value="$PROJECT_DIR$/views/home/availableGames.html" />
         <option value="$PROJECT_DIR$/routes/gameRoutes.js" />
+        <option value="$PROJECT_DIR$/public/js/game/gameNotifications.js" />
       </list>
     </option>
   </component>
@@ -868,26 +861,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/views/game/game.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-25.625">
-          <caret line="41" column="6" selection-start-line="41" selection-start-column="6" selection-end-line="41" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/signup.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="23" column="26" selection-start-line="23" selection-start-column="26" selection-end-line="23" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/js/game/gameNotifications.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="58" column="7" selection-start-line="58" selection-start-column="7" selection-end-line="58" selection-end-column="7" />
           <folding />
         </state>
       </provider>
@@ -932,14 +909,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/public/js/game/gameActions.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-7.148148">
-          <caret line="266" column="32" selection-start-line="266" selection-start-column="32" selection-end-line="266" selection-end-column="32" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/views/home/availableGames.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-37.5">
@@ -954,8 +923,32 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/routes/gameRoutes.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.1491935">
-          <caret line="95" column="7" selection-start-line="95" selection-start-column="7" selection-end-line="95" selection-end-column="7" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="40" column="29" selection-start-line="40" selection-start-column="29" selection-end-line="40" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/game/game.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-25.625">
+          <caret line="41" column="6" selection-start-line="41" selection-start-column="6" selection-end-line="41" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/js/game/gameActions.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-131.59259">
+          <caret line="266" column="32" selection-start-line="266" selection-start-column="32" selection-end-line="266" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/js/game/gameNotifications.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5080645">
+          <caret line="46" column="48" selection-start-line="46" selection-start-column="48" selection-end-line="46" selection-end-column="48" />
           <folding />
         </state>
       </provider>
