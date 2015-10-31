@@ -46,13 +46,14 @@ exports.DropHandler = {
       return gamePlayer.getMetadata("status") === "ready";
     });
 
+    gamePlayer.setAllMetadata(gamePlayerMetadata);
+
     var roundComplete = isRoundComplete(gamePlayerPk, activeGamePlayers, session);
     determineLeaderAndNextTurn(roundComplete, activeGamePlayers, gamePlayerPk, gameMetadata, cardInHand.card);
     var sessionComplete = isSessionComplete(roundComplete, hand);
     var leadGamePlayer = processScores(session, game, gameMetadata, activeGamePlayers, sessionComplete);
 
     game.setAllMetadata(gameMetadata);
-    gamePlayer.setAllMetadata(gamePlayerMetadata);
 
     var saveGame = game.save(null, {transacting: t});
     var saveGamePlayer = saveGame.then(function(game) {
@@ -147,7 +148,6 @@ function processScores(session, game, gameMetadata, gamePlayers, sessionComplete
   var leadGamePlayer = gamePlayers.find(function(g) {return g.get("uuid") === gameMetadata["leadGamePlayer"]});
 
   if (sessionComplete) {
-    var gamePlayerMetadata = leadGamePlayer.getAllMetadata();
     var leadPlays = game.related("plays").filter(function(play) {
       return play.getMetadata("session") == session && play.get("game_player_uuid") === leadGamePlayer.get("uuid")
           && play.getMetadata("type") === "drop";
@@ -170,7 +170,7 @@ function processScores(session, game, gameMetadata, gamePlayers, sessionComplete
         break;
       }
     }
-
+    var gamePlayerMetadata = leadGamePlayer.getAllMetadata();
     gameMetadata.status = "undealt";
     gameMetadata.session++;
     gamePlayerMetadata.score += score;
