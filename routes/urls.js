@@ -16,6 +16,8 @@ function route(app, Bookshelf, io) {
     return function(req, res) {
       Bookshelf.transaction(function(t) {
         callback(req, res, Bookshelf, io, t);
+      }).catch(function(err) {
+        // Expected
       });
     }
   }

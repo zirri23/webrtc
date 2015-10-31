@@ -2,22 +2,19 @@ var util = require('util');
 var cards = require('../cards');
 
 var pointsMap = {
-  6    : {null: 3, "dry": 6, "show-dry": 12},
-  7    : {null: 2, "dry": 4, "show-dry": 8},
-  other: {null: 1, "dry": 1, "show-dry": 1}
+  6    : {"none": 3, "dry": 6, "show-dry": 12},
+  7    : {"none": 2, "dry": 4, "show-dry": 8}
 };
 
 exports.DropHandler = {
   handlePlay: function(play, game, gamePlayer, models, t, callback) {
     var gameMetadata = game.getAllMetadata();
     if (gameMetadata.status != "ready") {
-      callback("Can't play until everyone is ready", {});
-      return;
+      return callback("Can't play until everyone is ready", {});
     }
     var gamePlayerPk = gamePlayer.get("uuid");
     if (gameMetadata.turnGamePlayer != gamePlayerPk) {
-      callback("Not your turn", {});
-      return;
+      return callback("Not your turn", {});
     }
     var session = gameMetadata.session;
     var gamePlayerMetadata = gamePlayer.getAllMetadata();
@@ -26,9 +23,8 @@ exports.DropHandler = {
 
     var firstCard = playMetadata.cards[0];
     var cardInHand = hand.find(function(card) {return firstCard == card.card});
-    if (cardInHand == null || cardInHand == undefined) {
-      callback("You don't have that card anymore!", {});
-      return;
+    if (cardInHand == null || cardInHand == undefined || cardInHand.play == "drop") {
+      return callback("You don't have that card anymore!", {});
     }
     if (isGbaa(
             gameMetadata.leadGamePlayer,
@@ -40,16 +36,19 @@ exports.DropHandler = {
       return;
     }
     var playedCards = [];
-    playMetadata.cards.map(function(card) {playedCards.push({card: card, index: hand.indexOf(cardInHand)})});
+    playMetadata.cards.map(function(card) {playedCards.push({card: card, index: hand.indexOf(cardInHand),
+        modifier: cardInHand.modifier})});
 
     cardInHand.play = play.getMetadata("type");
+    gamePlayer.setMetadata("hands", gamePlayerMetadata["hands"]);
 
     var activeGamePlayers = game.related("gamePlayers").filter(function(gamePlayer) {
       return gamePlayer.getMetadata("status") === "ready";
     });
 
-    determineLeaderAndNextTurn(activeGamePlayers, gamePlayerPk, gameMetadata, cardInHand.card);
-    var sessionComplete = isSessionComplete(isRoundComplete(gamePlayerPk, activeGamePlayers, session), hand);
+    var roundComplete = isRoundComplete(gamePlayerPk, activeGamePlayers, session);
+    determineLeaderAndNextTurn(roundComplete, activeGamePlayers, gamePlayerPk, gameMetadata, cardInHand.card);
+    var sessionComplete = isSessionComplete(roundComplete, hand);
     var leadGamePlayer = processScores(session, game, gameMetadata, activeGamePlayers, sessionComplete);
 
     game.setAllMetadata(gameMetadata);
@@ -94,14 +93,13 @@ function isGbaa(leadGamePlayer, gamePlayerPk, firstCard, leadCard, hand) {
   return false;
 }
 
-function determineLeaderAndNextTurn(activeGamePlayers, gamePlayerPk, gameMetadata, currentPlayedCard) {
+function determineLeaderAndNextTurn(roundComplete, activeGamePlayers, gamePlayerPk, gameMetadata, currentPlayedCard) {
   if (!gameMetadata.leadCard
       || cards.valueOf(currentPlayedCard).beats(cards.valueOf(gameMetadata.leadCard))
       || gameMetadata.leadGamePlayer === gamePlayerPk) {
     gameMetadata.leadGamePlayer = gamePlayerPk;
     gameMetadata.leadCard = currentPlayedCard;
   }
-  var roundComplete = isRoundComplete(gamePlayerPk, activeGamePlayers, gameMetadata.session);
   if (!roundComplete) {
     var gamePlayerIndex = activeGamePlayers.findIndex(function(gp) {return gp.get("uuid") === gamePlayerPk});
     var nextIndex = (gamePlayerIndex + 1) % activeGamePlayers.length;
@@ -136,7 +134,8 @@ function isSessionComplete(isRoundComplete, hand) {
   if (!isRoundComplete) {
     return false;
   }
-  for (var card in hand) {
+  for (var i = 0; i < hand.length; i++) {
+    var card = hand[i];
     if (card.play !== "drop") {
       return false;
     }
@@ -148,22 +147,35 @@ function processScores(session, game, gameMetadata, gamePlayers, sessionComplete
   var leadGamePlayer = gamePlayers.find(function(g) {return g.get("uuid") === gameMetadata["leadGamePlayer"]});
 
   if (sessionComplete) {
-    gameMetadata.status = "undealt";
     var gamePlayerMetadata = leadGamePlayer.getAllMetadata();
     var leadPlays = game.related("plays").filter(function(play) {
-      return play.getMetadata("session") == session && play.get("game_player_uuid") === leadGamePlayer.get("uuid");
+      return play.getMetadata("session") == session && play.get("game_player_uuid") === leadGamePlayer.get("uuid")
+          && play.getMetadata("type") === "drop";
     }).sort(function(a, b) {
       return a.get("created_at").getTime() - b.get("created_at").getTime();
     });
 
     var score = 0;
-    var leadPlay = leadPlays[leadPlays.length - 1];
-    while (cards.valueOf(leadPlay.getMetadata("card")).rank.value <= 7) {
-      if (leadPlays[leadPlays.length - 1])
-      score += pointsMap[leadCard.rank.name][leadPlay.modifier];
+
+    for (var i = leadPlays.length - 1; i >= 0; i--) {
+      var cardPlay = leadPlays[i].getMetadata("cards")[0];
+      console.log(JSON.stringify(leadPlays));
+      var card = cards.valueOf(cardPlay.card);
+      if (card.rank.value <= 7) {
+        console.log(card.rank.value);
+        console.log(cardPlay.modifier);
+        console.log(JSON.stringify(pointsMap));
+        console.log(JSON.stringify(pointsMap[card.rank.value]));
+        console.log(JSON.stringify(pointsMap[card.rank.value][cardPlay.modifier]));
+        score += pointsMap[card.rank.value][cardPlay.modifier];
+      } else {
+        if (score == 0) score = 1;
+        break;
+      }
     }
 
-    score = score || 1;
+    gameMetadata.status = "undealt";
+    gameMetadata.session++;
     gamePlayerMetadata.score += score;
     gamePlayerMetadata.won += 1;
     leadGamePlayer.setAllMetadata(gamePlayerMetadata);

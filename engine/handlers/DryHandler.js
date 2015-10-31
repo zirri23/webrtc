@@ -14,15 +14,12 @@ exports.DryHandler = {
     playMetadata.cards.forEach(function(playCard) {
       var cardInHand = hand.find(function(card) {return playCard == card.card});
       if (cardInHand == null || cardInHand == undefined) {
-        callback("You don't have that card anymore!", {});
-        return;
+        return callback("You don't have that card anymore!", {});
       }
-      if (cardInHand.modifier) {
-        callback("Card already dried or played", {});
-        return;
+      if (cardInHand.modifier !== "none") {
+        return callback("Card already dried or played", {});
       } else if (cards.valueOf(playCard).rank.value > 7) {
-        callback("Can only dry a 6 or 7", {});
-        return;
+        return callback("Can only dry a 6 or 7", {});
       }
       playedCards.push({
         card: playMetadata.type === "show-dry" ? playCard : null,

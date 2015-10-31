@@ -29,7 +29,7 @@ exports.handlePlay = function(gamePlayer, game, type, metadata, models, t, callb
     game_player_id: gamePlayer.get("id"),
     game_player_uuid: gamePlayer.get("uuid")});
 
-  play.setMetadata("session", game.get("session"));
+  play.setMetadata("session", game.getMetadata("session"));
   play.setMetadata("type", type);
   play.setAllMetadata(metadata);
 

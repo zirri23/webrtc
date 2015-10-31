@@ -20,13 +20,13 @@ exports.DealHandler = {
 
     var session = gameMetadata.session;
 
+    var cardsNeeded = activeGamePlayers.length * 5;
     if (gameMetadata.deck.length < cardsNeeded) {
       gameMetadata.deck = cards.getSparDeck();
     }
     var deck = gameMetadata.deck;
-    createHands (session, activeGamePlayers, deck);
 
-    var cardsNeeded = activeGamePlayers.length * 5;
+    createHands (session, activeGamePlayers, deck);
     deck = deck.slice(cardsNeeded);
 
     for (var i = 0; i < activeGamePlayers.length; i++) {
@@ -56,7 +56,7 @@ function createHands (session, activeGamePlayers, deck) {
     var hand = deck.slice(0,5);
     var handObject = [];
     for (var j = 0; j < hand.length; j++) {
-      handObject[j] = {card: hand[j], play: "unplayed"};
+      handObject[j] = {card: hand[j], play: "unplayed", modifier: "none"};
     }
     var activeGamePlayerMetadata = activeGamePlayers[i].getAllMetadata();
     activeGamePlayerMetadata.hands[session] = handObject;

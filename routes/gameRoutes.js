@@ -129,7 +129,7 @@ exports.sendPlay = function(req, res, models, io, t) {
   var playerId = req.user.id;
   var gamePk = req.body.gamePk;
   var gamePlayerPk = req.body.gamePlayerPk;
-  models.GamePlayer.where({uuid: gamePlayerPk}).fetch({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
+  models.GamePlayer.where({uuid: gamePlayerPk}).fetch({withRelated: ["game", "game.gamePlayers", "game.plays"], transacting: t}).then(function(gamePlayer) {
     if(!gamePlayer) {
       t.rollback();
       res.send(500, util.format("%s is not a member of this game", gamePk));
@@ -173,7 +173,8 @@ exports.getCards = function(req, res, models, io) {
       var game = gamePlayer.related("game");
       game.related("gamePlayers").forEach(function(gamePlayer) {
         var gamePlayerHand = gamePlayer.getMetadata("hands")[game.getMetadata("session")];
-        if (gamePlayer.get("uuid") !== gamePlayerPk) {
+        console.log("**********hand: " + JSON.stringify(gamePlayer.getMetadata("hands")));
+        if (gamePlayer.get("uuid") !== gamePlayerPk && gamePlayerHand) {
           for (var i = 0; i < gamePlayerHand.length; i++) {
             if (gamePlayerHand[i].modifier != "show-dry") {
               gamePlayerHand[i].card = null;

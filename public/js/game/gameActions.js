@@ -48,7 +48,7 @@ function processDrops() {
   $(".player-drop-holder").animate().css("visibility", "hidden");
   for (var i = 0; i < game.plays.length; i++) {
     var play = game.plays[i];
-    if (play.type === "drop") {
+    if (play.type === "drop" && play.session == game.session) {
       var gamePlayer = gamePlayerPkToGamePlayer[play.game_player_uuid];
       processDrop(play.game_player_uuid, gamePlayer.player.avatar || DEFAULT_PROFILE_PIC, play.cards);
     }
