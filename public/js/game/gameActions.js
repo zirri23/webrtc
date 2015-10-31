@@ -57,6 +57,7 @@ function processDrops() {
 
 function showDealButton() {
   $("deal-button").removeAttr("disabled");
+  $("#deal-button").css("z-index", ++maxZIndex);
   $("#deal-button").show("slow");
   $("#deal-button").click(function(){
     $("deal-button").attr("disabled","disabled");

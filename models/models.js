@@ -22,15 +22,8 @@ var merge = require("merge");
 
 var bookshelf = require("bookshelf")(knex);
 
-var Player = bookshelf.Model.extend({
-  tableName: "players",
+var BaseMetadataModel = bookshelf.Model.extend({
   hasTimestamps: ["created_at", "updated_at"],
-  gamePlayers: function() {
-    return this.hasMany(GamePlayer);
-  },
-  plays: function() {
-    return this.hasMany(Play);
-  },
   getAllMetadata: function() {
     var metadata = this.get("metadata");
     if (metadata == null || metadata == undefined) {
@@ -58,9 +51,18 @@ var Player = bookshelf.Model.extend({
   }
 });
 
-var Game = bookshelf.Model.extend({
+var Player = BaseMetadataModel.extend({
+  tableName: "players",
+  gamePlayers: function() {
+    return this.hasMany(GamePlayer);
+  },
+  plays: function() {
+    return this.hasMany(Play);
+  }
+});
+
+var Game = BaseMetadataModel.extend({
 	tableName: "games",
-    hasTimestamps: ["created_at", "updated_at"],
 	gamePlayers: function() {
 		return this.hasMany(GamePlayer);
 	},
@@ -69,37 +71,11 @@ var Game = bookshelf.Model.extend({
   },
 	creator: function() {
 		return this.belongsTo(Player, "creator");
-	},
-  getAllMetadata: function() {
-    var metadata = this.get("metadata");
-    if (metadata == null || metadata == undefined) {
-      return {};
-    }
-    return JSON.parse(metadata);
-  },
-  getMetadata: function(key) {
-    return this.getAllMetadata()[key];
-  },
-  setMetadata: function(key, value) {
-    var metadata = this.getAllMetadata();
-    metadata[key] = value;
-    this.set("metadata", JSON.stringify(metadata));
-  },
-  setAllMetadata: function(map) {
-    var metadata = this.getAllMetadata();
-    var toSave = merge(metadata, map);
-    this.set("metadata", JSON.stringify(toSave));
-  },
-  toJSON: function () {
-    var attrs = bookshelf.Model.prototype.toJSON.apply(this, arguments);
-    attrs.metadata = null;
-    return merge(attrs, this.getAllMetadata());
-  }
+	}
 });
 
-var GamePlayer = bookshelf.Model.extend({
+var GamePlayer = BaseMetadataModel.extend({
 	tableName: "gamePlayers",
-  hasTimestamps: ["created_at", "updated_at"],
 	player: function() {
 		return this.belongsTo(Player);
 	},
@@ -108,37 +84,11 @@ var GamePlayer = bookshelf.Model.extend({
 	},
   plays: function() {
     return this.hasMany(Play);
-  },
-  getAllMetadata: function() {
-    var metadata = this.get("metadata");
-    if (metadata == null || metadata == undefined) {
-      return {};
-    }
-    return JSON.parse(metadata);
-  },
-  getMetadata: function(key) {
-    return this.getAllMetadata()[key];
-  },
-  setMetadata: function(key, value) {
-    var metadata = this.getAllMetadata();
-    metadata[key] = value;
-    this.set("metadata", JSON.stringify(metadata));
-  },
-  setAllMetadata: function(map) {
-    var metadata = this.getAllMetadata();
-    var toSave = merge(metadata, map);
-    this.set("metadata", JSON.stringify(toSave));
-  },
-  toJSON: function () {
-    var attrs = bookshelf.Model.prototype.toJSON.apply(this, arguments);
-    attrs.metadata = null;
-    return merge(attrs, this.getAllMetadata());
   }
 });
 
-var Play = bookshelf.Model.extend({
+var Play = BaseMetadataModel.extend({
   tableName: "plays",
-  hasTimestamps: ["created_at", "updated_at"],
   game: function() {
     return this.belongsTo(Game);
   },
@@ -147,31 +97,6 @@ var Play = bookshelf.Model.extend({
   },
   gamePlayer: function() {
     return this.belongsTo(GamePlayer);
-  },
-  getAllMetadata: function() {
-    var metadata = this.get("metadata");
-    if (metadata == null || metadata == undefined) {
-      return {};
-    }
-    return JSON.parse(metadata);
-  },
-  getMetadata: function(key) {
-    return this.getAllMetadata()[key];
-  },
-  setMetadata: function(key, value) {
-    var metadata = this.getAllMetadata();
-    metadata[key] = value;
-    this.set("metadata", JSON.stringify(metadata));
-  },
-  setAllMetadata: function(map) {
-    var metadata = this.getAllMetadata();
-    var toSave = merge(metadata, map);
-    this.set("metadata", JSON.stringify(toSave));
-  },
-  toJSON: function () {
-    var attrs = bookshelf.Model.prototype.toJSON.apply(this, arguments);
-    attrs.metadata = null;
-    return merge(attrs, this.getAllMetadata());
   }
 });
 
