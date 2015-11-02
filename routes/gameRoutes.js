@@ -54,6 +54,10 @@ exports.playGame = function(req, res, models, io) {
   });
 };
 
+exports.video = function(req, res) {
+  res.render("game/video.html", {});
+};
+
 exports.joinGame = function(req, res, models, io, t) {
   var playerId = req.user.id;
   var gamePk = req.body.gameId;

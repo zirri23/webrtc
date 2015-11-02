@@ -38,7 +38,7 @@ if (navigator.webkitGetUserMedia) {
 
 (function() {
 
-  var rtc;
+  //var rtc;
   if ('undefined' === typeof module) {
     rtc = this.rtc = {};
   } else {
@@ -278,7 +278,7 @@ if (navigator.webkitGetUserMedia) {
 
     pc.onaddstream = function(event) {
       // TODO: Finalize this API
-      rtc.fire('add remote stream', event.stream, id);
+      rtc.fire("{{ gamePlayer.uuid }}", event.stream, id);
     };
 
     if (rtc.dataChannelSupport) {

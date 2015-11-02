@@ -34,6 +34,7 @@ function route(app, Bookshelf, io) {
   app.post('/sendPlay', ensureLoggedIn('/login'), withTransaction(gameRoutes.sendPlay));
   app.post('/getCards', ensureLoggedIn('/login'), withTransaction(gameRoutes.getCards));
   app.post('/getGameVersion', withoutTransaction(gameRoutes.getGameVersion));
+  app.get('/video', gameRoutes.video);
 }
 
 post = function(url, route) {
