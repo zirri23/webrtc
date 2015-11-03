@@ -3,7 +3,7 @@ var cards = require('../cards');
 exports.DryHandler = {
   handlePlay : function(play, game, gamePlayer, models, t, callback) {
     if (gamePlayer.getMetadata("status") != "active") {
-      callback("Can only dry when cards have just been dealt", null);
+      callback("Can only dry when cards have just been dealt", {});
       return;
     }
     var playMetadata = play.getAllMetadata();
