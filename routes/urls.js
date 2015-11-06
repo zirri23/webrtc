@@ -26,7 +26,7 @@ function route(app, Bookshelf, io) {
   app.get('/auth/google/oauth2callback', authRoutes.authenticateGoogleCallback);
   app.get('/login', withoutTransaction(authRoutes.login));
   app.get('/', ensureLoggedIn('/login'), routes.index);
-  app.get('/playGame', ensureLoggedIn('/login'), withTransaction(gameRoutes.playGame));
+  app.get('/playGame', ensureLoggedIn('/login'), withoutTransaction(gameRoutes.playGame));
   app.post('/joinGame', ensureLoggedIn('/login'), withTransaction(gameRoutes.joinGame));
   app.post('/createGame', ensureLoggedIn('/login'), withTransaction(gameRoutes.createGame));
   app.post('/queryGames', ensureLoggedIn('/login'), withoutTransaction(gameRoutes.queryGames));

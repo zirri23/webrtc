@@ -57,7 +57,6 @@ socket.on(sprintf("deal/%s", "{{ game.uuid }}"), function(message) {
 });
 
 socket.on(sprintf("drop/%s", "{{ game.uuid }}"), function(message) {
-  alert
   window.game.version = message.details.version;
   processDrop(message.senderPk, message.avatar, message.details.cards);
   updateGameStatus(

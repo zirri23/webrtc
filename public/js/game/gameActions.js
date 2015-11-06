@@ -104,9 +104,10 @@ function arrangePlayers() {
   if($("#hand").find(".hand-avatar").length == 0) {
     var playerBox = $("#playerBox").clone();
     playerBox.attr("id", "{{ gamePlayer.uuid }}");
+    $("#hand").append(playerBox);
+    playerBox = $("#{{ gamePlayer.uuid }}");
     playerBox.find(".avatar").attr("src", "{{ player.avatar }}" || DEFAULT_PROFILE_PIC);
     updateScoresOnLoad(playerBox, "{{ gamePlayer.score }}", "{{ gamePlayer.won }}");
-    $("#hand").append(playerBox);
   }
 
   var count = 1;
@@ -313,6 +314,27 @@ function processReady(gamePlayerPk, avatar, cards, playType) {
 
 $("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
   if (!$(this).hasClass("player-not-ready")) {
+    var handAvatar = $("#{{ gamePlayer.uuid }}").find(".hand-avatar");
+    if (handAvatar.length) {
+      console.log(handAvatar);
+      window.avatarImage = handAvatar;
+      var video = $(".player-video").clone();
+      video.attr("id", "local");
+      handAvatar.replaceWith(video);
+      rtc.connect('ws://spargame.com:8001');
+      rtc.createStream({
+        "video" : true,
+        "audio" : false
+      }, function(stream) {
+        // get local stream for manipulation
+        window.playerStream = stream;
+        rtc.attachStream(stream, 'local');
+      });
+    } else {
+      console.log("stopping");
+      window.playerStream.stop();
+      $("#local").replaceWith(window.avatarImage);
+    }
     return;
   }
   $.post("/sendPlay/", {
