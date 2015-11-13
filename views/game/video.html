@@ -4,7 +4,8 @@
 <script>
   // note: make sure hostname available to all connecting clients
   // (ie. probably not `localhost`)
-  rtc.connect('ws://spargame.com:8001');
+  window.gamePlayerId = "b553a1cf-2e69-4259-9633-3b6d5b8ff129";
+  rtc.connect('ws://spargame.com:8001', "someroom");
 
   rtc.createStream({
     "video" : true,
@@ -14,7 +15,7 @@
     rtc.attachStream(stream, 'local');
   });
 
-  rtc.on('add remote stream', function(stream) {
+  rtc.on('remote-b553a1cf-2e69-4259-9633-3b6d5b8ff129', function(stream) {
     // show the remote video
     rtc.attachStream(stream, 'remote');
   });
@@ -25,4 +26,8 @@
 {% block body %}
   <video id="local" autoplay="autoplay"></video>
   <video id="remote" autoplay="autoplay"></video>
+{% include "elements.html" %}
+{% endblock %}
+{% block readyJs %}
+{% include "../../public/js/game/gameNotifications.js" %}
 {% endblock %}

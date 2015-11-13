@@ -1,3 +1,5 @@
+window.gamePlayerId = "{{ gamePlayer.uuid }}";
+
 socket.emit("set game", {
   game: "{{ game.uuid }}",
   gamePlayer: "{{ gamePlayer.uuid }}",
@@ -12,6 +14,7 @@ window.game = {{ game|json|raw }};
 window.gamePlayerPkToGamePlayer = {};
 window.boxIdToFace = {};
 window.gamePlayerIdToBoxId = {};
+window.gamePlayerIdToHandAvatars = {};
 
 for (var i = 0; i < game.gamePlayers.length; i++) {
   var gamePlayer = game.gamePlayers[i];
@@ -314,26 +317,11 @@ function processReady(gamePlayerPk, avatar, cards, playType) {
 
 $("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
   if (!$(this).hasClass("player-not-ready")) {
-    var handAvatar = $("#{{ gamePlayer.uuid }}").find(".hand-avatar");
-    if (handAvatar.length) {
-      console.log(handAvatar);
-      window.avatarImage = handAvatar;
-      var video = $(".player-video").clone();
-      video.attr("id", "local");
-      handAvatar.replaceWith(video);
-      rtc.connect('ws://spargame.com:8001');
-      rtc.createStream({
-        "video" : true,
-        "audio" : false
-      }, function(stream) {
-        // get local stream for manipulation
-        window.playerStream = stream;
-        rtc.attachStream(stream, 'local');
-      });
-    } else {
-      console.log("stopping");
+    if ($("#local").length) {
       window.playerStream.stop();
       $("#local").replaceWith(window.avatarImage);
+    } else {
+      setupVideo();
     }
     return;
   }
@@ -349,3 +337,46 @@ $("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
       alert(err.responseText);
     });
 });
+
+function setupVideo() {
+  rtc.connect('ws://spargame.com:8001', "{{ game.uuid }}");
+  var handAvatar = $("#{{ gamePlayer.uuid }}").find(".hand-avatar");
+  window.avatarImage = handAvatar;
+  var video = $("#player-video").clone();
+  video.attr("id", "local");
+  handAvatar.replaceWith(video);
+  rtc.createStream({
+    "video" : true,
+    "audio" : false
+  }, function(stream) {
+    // get local stream for manipulation
+    window.playerStream = stream;
+    rtc.attachStream(stream, 'local');
+  });
+
+  for (var gamePlayerPk in gamePlayerPkToGamePlayer) {
+    var videoId = "remote-" + gamePlayerPk;
+    console.log("creating callback for: " + videoId);
+    rtc.on(videoId, function (stream) {
+      console.log(sprintf("Got webrtc for %s my gamePlayerPk is {{ gamePlayer.uuid }}", sprintf("%s-open", gamePlayerPk)));
+      // show the remote video
+      var video = $("#player-video").clone();
+      video.attr("id", videoId);
+      var handAvatar = $(sprintf("#%s", gamePlayerPk)).find(".hand-avatar");
+      window.gamePlayerIdToHandAvatars[gamePlayerPk] = handAvatar;
+      handAvatar.replaceWith(video);
+      rtc.attachStream(stream, videoId);
+    });
+
+    var disconnectId = "disconnect-" + gamePlayerPk;
+    console.log("creating callback for: " + disconnectId);
+    rtc.on(disconnectId, function (stream) {
+      console.log(sprintf("Got disc for %s my gamePlayerPk is {{ gamePlayer.uuid }}", sprintf("%s-open", gamePlayerPk)));
+      // show the remote video
+      var video = $("#" + videoId);
+      console.log(video);
+      var handAvatar = window.gamePlayerIdToHandAvatars[gamePlayerPk];
+      video.replaceWith(handAvatar);
+    });
+  }
+}

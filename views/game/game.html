@@ -2,6 +2,9 @@
 {% block css %}
 <link href="css/animations/game/flipper.css" rel="stylesheet">
 {% endblock %}
+{% block js %}
+<script src="/js/external/webrtc.io.js"></script>
+{% endblock %}
 {% block sidebar %}
 {% include "chat.html" %}
 {% endblock %}
@@ -53,7 +56,6 @@
 {% include "elements.html" %}
 {% endblock %}
 {% block readyJs %}
-{% include "../../public/js/external/webrtc.io.js" %}
 {% include "../../public/js/game/gameActions.js" %}
 {% include "../../public/js/game/gameNotifications.js" %}
 {% endblock %}

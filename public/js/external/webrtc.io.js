@@ -38,16 +38,16 @@ if (navigator.webkitGetUserMedia) {
 
 (function() {
 
-  //var rtc;
+  var rtc;
   if ('undefined' === typeof module) {
     rtc = this.rtc = {};
   } else {
     rtc = module.exports = {};
   }
-  
+
   // Toggle debug mode (console.log)
-  rtc.debug = false;
-  
+  rtc.debug = true;
+
   // Holds a connection to the server.
   rtc._socket = null;
 
@@ -169,8 +169,10 @@ if (navigator.webkitGetUserMedia) {
       rtc._socket.onclose = function(data) {
         var id = rtc._socket.id;
         rtc.fire('disconnect stream', id);
+        console.log("Firing: "+ 'disconnect-' + window.gamePlayerId);
+        rtc.fire('diconnect-' + window.gamePlayerId, event.stream, id);
         if (typeof(rtc.peerConnections[id]) !== 'undefined')
-            rtc.peerConnections[id].close();
+          rtc.peerConnections[id].close();
         delete rtc.peerConnections[id];
         delete rtc.dataChannels[id];
         delete rtc.connections[id];
@@ -210,8 +212,10 @@ if (navigator.webkitGetUserMedia) {
       rtc.on('remove_peer_connected', function(data) {
         var id = data.socketId;
         rtc.fire('disconnect stream', id);
+        console.log("Firing: "+ 'disconnect-' + window.gamePlayerId);
+        rtc.fire('diconnect-' + window.gamePlayerId, event.stream, id);
         if (typeof(rtc.peerConnections[id]) !== 'undefined')
-            rtc.peerConnections[id].close();
+          rtc.peerConnections[id].close();
         delete rtc.peerConnections[id];
         delete rtc.dataChannels[id];
         delete rtc.connections[id];
@@ -242,6 +246,8 @@ if (navigator.webkitGetUserMedia) {
   rtc.onClose = function(data) {
     rtc.on('close_stream', function() {
       rtc.fire('close_stream', data);
+      console.log("Firing: "+ 'disconnect-' + window.gamePlayerId);
+      rtc.fire('diconnect-' + window.gamePlayerId, event.stream, id);
     });
   };
 
@@ -278,7 +284,8 @@ if (navigator.webkitGetUserMedia) {
 
     pc.onaddstream = function(event) {
       // TODO: Finalize this API
-      rtc.fire("{{ gamePlayer.uuid }}", event.stream, id);
+      console.log("Firing: "+ 'remote-' + window.gamePlayerId);
+      rtc.fire('remote-' + window.gamePlayerId, event.stream, id);
     };
 
     if (rtc.dataChannelSupport) {
@@ -406,7 +413,7 @@ if (navigator.webkitGetUserMedia) {
     if (!rtc.dataChannelSupport) {
       //TODO this should be an exception
       alert('webRTC data channel is not yet supported in this browser,' +
-        ' or you must turn on experimental flags');
+          ' or you must turn on experimental flags');
       return;
     }
 
@@ -480,7 +487,7 @@ if (navigator.webkitGetUserMedia) {
     if (!rtc.dataChannelSupport) return;
 
     for (var connection in rtc.peerConnections)
-    rtc.createDataChannel(connection);
+      rtc.createDataChannel(connection);
   };
 
 
@@ -533,7 +540,7 @@ function setDefaultCodec(mLine, payload) {
   var index = 0;
   for (var i = 0; i < elements.length; i++) {
     if (index === 3) // Format of media starts from the fourth.
-    newLine[index++] = payload; // Put target payload to the first.
+      newLine[index++] = payload; // Put target payload to the first.
     if (elements[i] !== payload) newLine[index++] = elements[i];
   }
   return newLine.join(' ');
