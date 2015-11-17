@@ -148,9 +148,11 @@ function arrangePlayers() {
       if(gamePlayer.uuid == "{{ gamePlayer.uuid }}") {
         $("#{{ gamePlayer.uuid }}").find(".readyButton").addClass("player-not-ready");
       }
+      greyOutPlayerVideo(gamePlayer.uuid);
     } else {
       $(sprintf("#%s", gamePlayer.uuid)).find(".readyButton").removeClass("not-ready");
       $(sprintf("#%s", gamePlayer.uuid)).find(".readyButton").removeClass("player-not-ready");
+      unGreyOutPlayerVideo(gamePlayer.uuid);
     }
   }
 }
@@ -311,12 +313,13 @@ function processReady(gamePlayerPk, avatar, cards, playType) {
   $(sprintf("#%s", gamePlayerPk)).find(".readyButton").removeClass("not-ready");
   $(sprintf("#%s", gamePlayerPk)).find(".readyButton").removeClass("player-not-ready");
   gamePlayerPkToGamePlayer[gamePlayerPk].status = "ready";
+  unGreyOutPlayerVideo(gamePlayerPk);
 }
 $("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
   if (!$(this).hasClass("player-not-ready")) {
     if ($("#local").length) {
       window.peer.destroy();
-      $("#local").replaceWith(window.avatarImage);
+      $("#local-div").replaceWith(window.avatarImage);
     } else {
       setupVideo();
     }
@@ -335,8 +338,6 @@ $("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
     });
 });
 
-
-
 function setupVideo() {
   window.peer = new Peer(window.gamePlayerId, {host: 'spargame.com', port: 8001});
   peer.on('open', function(id) {
@@ -344,9 +345,14 @@ function setupVideo() {
   });
   var handAvatar = $("#{{ gamePlayer.uuid }}").find(".hand-avatar");
   window.avatarImage = handAvatar;
-  var video = $("#player-video").clone();
-  video.attr("id", "local");
-  handAvatar.replaceWith(video);
+  var videoDiv = $("#video-div").clone();
+  videoDiv.attr("id", "local-div");
+  var playerVideo = videoDiv.find("#player-video");
+  playerVideo.attr("id", "local");
+  var playerVideoCanvas = videoDiv.find("#player-video-canvas");
+  playerVideoCanvas.attr("id", "local-canvas");
+
+  handAvatar.replaceWith(videoDiv);
   createStream(function(stream) {
     // get local stream for manipulation
     window.playerStream = stream;
@@ -371,8 +377,6 @@ function setupVideo() {
       }
     }
   });
-
-
 }
 
 function showPeerVideo(call) {
@@ -381,7 +385,11 @@ function showPeerVideo(call) {
     var videoId = "remote-" + gamePlayerPk;
     console.log("Creating peer for: " + videoId);
     console.log("receiving stream from: " + videoId);
-    var video = $("#player-video").clone();
+    var videoDiv = $("#video-div").clone();
+    videoDiv.attr("id", videoId + "-div");
+    var videoCanvas = videoDiv.find("#player-video-canvas");
+    videoCanvas.attr("id", videoId + "-canvas");
+    var video = videoDiv.find("#player-video");
     video.attr("id", videoId);
     console.log("Replacing " + gamePlayerPk);
     var handAvatar = $(sprintf("#%s", gamePlayerPk)).find(".hand-avatar");
@@ -389,7 +397,7 @@ function showPeerVideo(call) {
       window.gamePlayerIdToHandAvatars[gamePlayerPk] = handAvatar;
       console.log(handAvatar);
       console.log(handAvatar.length);
-      handAvatar.replaceWith(video);
+      handAvatar.replaceWith(videoDiv);
       // `stream` is the MediaStream of the remote peer.
       // Here you'd add it to an HTML video/canvas element.
       attachStream(stream, videoId);
@@ -401,11 +409,39 @@ function showPeerVideo(call) {
     var videoId = "remote-" + gamePlayerPk;
     console.log(sprintf("Got disc for %s my gamePlayerPk is {{ gamePlayer.uuid }}", gamePlayerPk));
     // hide the remote video
-    var video = $("#" + videoId);
+    var video = $("#" + videoId + "-div");
     console.log(window.gamePlayerIdToHandAvatars);
     var handAvatar = window.gamePlayerIdToHandAvatars[gamePlayerPk];
     if (handAvatar) {
       video.replaceWith(handAvatar);
     }
   });
+}
+
+function greyOutPlayerVideo(gamePlayerPk) {
+  var videoId = "#remote-" + gamePlayerPk;
+  if($(videoId).length == 0) {
+    return;
+  }
+  var seriously = new Seriously();
+  var blackAndWhite = seriously.effect("hue-saturation");
+  blackAndWhite.saturation = -1;
+  blackAndWhite.source = seriously.source('#gamePlayerPk').find(".player-v");
+  var target = seriously.target('#player-video-canvas');
+  target.source = blackAndWhite;
+  seriously.go();
+}
+
+function unGreyOutPlayerVideo(gamePlayerPk) {
+  var videoId = "#remote-" + gamePlayerPk;
+  if($(videoId).length == 0) {
+    return;
+  }
+  var seriously = new Seriously();
+  var blackAndWhite = seriously.effect("hue-saturation");
+  blackAndWhite.saturation = -1;
+  blackAndWhite.source = seriously.source('#local');
+  var target = seriously.target('#player-video-canvas');
+  target.source = blackAndWhite;
+  seriously.go();
 }

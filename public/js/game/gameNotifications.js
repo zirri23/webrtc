@@ -50,6 +50,7 @@ socket.on(sprintf("deal/%s", "{{ game.uuid }}"), function(message) {
   game.status = "dealt";
   window.game.version = message.details.version;
   for (gamePlayer in gamePlayerPkToGamePlayer) {
+    greyOutPlayerVideo(gamePlayer);
     gamePlayerPkToGamePlayer[gamePlayer].status = "active";
   }
   $(".player-drop-cards").children().hide("fast");
@@ -101,6 +102,16 @@ function attachStream(stream, element) {
   } else {
     element.src = URL.createObjectURL(stream);
   }
+
+  var seriously = new Seriously();
+  var blackAndWhite = seriously.effect("hue-saturation");
+  blackAndWhite.hue = 0;
+  var elementId = element.id;
+  blackAndWhite.source = seriously.source("#" + elementId);
+  var canvas = $('#' + elementId + "-canvas");
+  var target = seriously.target("#" + canvas.attr("id"));
+  target.source = blackAndWhite;
+  seriously.go();
 };
 
 function createStream(onSuccess, onFail) {
