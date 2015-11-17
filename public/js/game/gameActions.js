@@ -1,4 +1,5 @@
 window.gamePlayerId = "{{ gamePlayer.uuid }}";
+window.gamePlayerSaturations = {};
 
 socket.emit("set game", {
   game: "{{ game.uuid }}",
@@ -357,7 +358,7 @@ function setupVideo() {
     // get local stream for manipulation
     window.playerStream = stream;
     console.log("about to attach streeam");
-    attachStream(stream, 'local');
+    attachStream(stream, 'local', "{{ gamePlayer.uuid }}");
 
     for (var gamePlayerPk in gamePlayerPkToGamePlayer) {
       if (gamePlayerPk !== "{{ gamePlayer.uuid }}") {
@@ -400,7 +401,7 @@ function showPeerVideo(call) {
       handAvatar.replaceWith(videoDiv);
       // `stream` is the MediaStream of the remote peer.
       // Here you'd add it to an HTML video/canvas element.
-      attachStream(stream, videoId);
+      attachStream(stream, videoId, call.peer);
     }
   });
 
@@ -419,29 +420,13 @@ function showPeerVideo(call) {
 }
 
 function greyOutPlayerVideo(gamePlayerPk) {
-  var videoId = "#remote-" + gamePlayerPk;
-  if($(videoId).length == 0) {
-    return;
+  if (window.gamePlayerSaturations[gamePlayerPk]) {
+    window.gamePlayerSaturations[gamePlayerPk].saturation = -1;
   }
-  var seriously = new Seriously();
-  var blackAndWhite = seriously.effect("hue-saturation");
-  blackAndWhite.saturation = -1;
-  blackAndWhite.source = seriously.source('#gamePlayerPk').find(".player-v");
-  var target = seriously.target('#player-video-canvas');
-  target.source = blackAndWhite;
-  seriously.go();
 }
 
 function unGreyOutPlayerVideo(gamePlayerPk) {
-  var videoId = "#remote-" + gamePlayerPk;
-  if($(videoId).length == 0) {
-    return;
+  if (window.gamePlayerSaturations[gamePlayerPk]) {
+    window.gamePlayerSaturations[gamePlayerPk].saturation = 0;
   }
-  var seriously = new Seriously();
-  var blackAndWhite = seriously.effect("hue-saturation");
-  blackAndWhite.saturation = -1;
-  blackAndWhite.source = seriously.source('#local');
-  var target = seriously.target('#player-video-canvas');
-  target.source = blackAndWhite;
-  seriously.go();
 }

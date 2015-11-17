@@ -1,7 +1,5 @@
 var getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
 
-var called = [];
-
 socket.on(sprintf("room change/%s", "{{ game.uuid }}"), function(message) {
   console.log(message.gamePlayer.uuid);
   window.game.version = message.details.version;
@@ -91,7 +89,7 @@ socket.on(sprintf("ready/%s", "{{ game.uuid }}"), function(message) {
   sendPlayToChat(message);
 });
 
-function attachStream(stream, element) {
+function attachStream(stream, element, gamePlayerPk) {
   console.log("Element: " + element);
   if (typeof(element) === "string")
     element = document.getElementById(element);
@@ -112,6 +110,7 @@ function attachStream(stream, element) {
   var target = seriously.target("#" + canvas.attr("id"));
   target.source = blackAndWhite;
   seriously.go();
+  gamePlayerSaturations[gamePlayerPk] = blackAndWhite;
 };
 
 function createStream(onSuccess, onFail) {
