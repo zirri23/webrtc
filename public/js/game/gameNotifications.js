@@ -1,3 +1,7 @@
+var getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+
+var called = [];
+
 socket.on(sprintf("room change/%s", "{{ game.uuid }}"), function(message) {
   console.log(message.gamePlayer.uuid);
   window.game.version = message.details.version;
@@ -85,3 +89,37 @@ socket.on(sprintf("ready/%s", "{{ game.uuid }}"), function(message) {
   processReady(message.senderPk, message.avatar, message.details.cards, message.type);
   sendPlayToChat(message);
 });
+
+function attachStream(stream, element) {
+  console.log("Element: " + element);
+  if (typeof(element) === "string")
+    element = document.getElementById(element);
+  if (navigator.mozGetUserMedia) {
+    if (rtc.debug) console.log("Attaching media stream");
+    element.mozSrcObject = stream;
+    element.play();
+  } else {
+    element.src = URL.createObjectURL(stream);
+  }
+};
+
+function createStream(onSuccess, onFail) {
+  onSuccess = onSuccess || function() {};
+  onFail = onFail || function() {};
+
+  var options = {
+    video: true,
+    audio: true
+  };
+
+  if (getUserMedia) {
+    getUserMedia.call(navigator, options, function(stream) {
+      onSuccess(stream);
+    }, function(error) {
+      alert("Could not connect stream.");
+      onFail(error);
+    });
+  } else {
+    alert('webRTC is not yet supported in this browser.');
+  }
+};

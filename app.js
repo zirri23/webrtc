@@ -19,7 +19,8 @@ var env = process.env.NODE_ENV || 'dev';
 
 var app = express();
 var sessionSecret = "9asdg0o8y4p8w398er89wepoijh";
-var webRTC = require('webrtc.io').listen(8001);
+var PeerServer = require('peer').PeerServer;
+PeerServer({port: 8001});
 
 var sessionStore = new express.session.MemoryStore({
   reapInterval : 60000 * 10

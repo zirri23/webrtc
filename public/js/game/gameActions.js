@@ -6,22 +6,21 @@ socket.emit("set game", {
   player: "{{ player.uuid }}",
   name: "{{ player.name }}",
   avatar: "{{ player.avatar }}" || DEFAULT_PROFILE_PIC});
-
 console.log("{{gamePlayer.game_id}}");
 
 window.maxZIndex = 0;
+
 window.game = {{ game|json|raw }};
 window.gamePlayerPkToGamePlayer = {};
 window.boxIdToFace = {};
 window.gamePlayerIdToBoxId = {};
 window.gamePlayerIdToHandAvatars = {};
-
 for (var i = 0; i < game.gamePlayers.length; i++) {
+
   var gamePlayer = game.gamePlayers[i];
   gamePlayer.complete = true;
   gamePlayerPkToGamePlayer[gamePlayer.uuid] = gamePlayer;
 }
-
 var versionChecker = setInterval(function() {
   $.post("/getGameVersion/", {
     _csrf: "{{ csrfToken }}",
@@ -45,10 +44,11 @@ var versionChecker = setInterval(function() {
 }, 5000);
 
 arrangePlayers();
+
 processDrops();
 getCards(game.session);
-
 $("#drop").append($("#board"));
+
 if (game.status === "undealt" && game.dealer === "{{ gamePlayer.uuid }}") {
   showDealButton();
 }
@@ -112,8 +112,8 @@ function arrangePlayers() {
     playerBox.find(".avatar").attr("src", "{{ player.avatar }}" || DEFAULT_PROFILE_PIC);
     updateScoresOnLoad(playerBox, "{{ gamePlayer.score }}", "{{ gamePlayer.won }}");
   }
-
   var count = 1;
+
   var playerCount = Object.keys(gamePlayerPkToGamePlayer).length;
   $(sprintf(".%splayer%s-drops", playerCount, playerCount))
       .find(".player-drop-holder")
@@ -130,7 +130,6 @@ function arrangePlayers() {
       count++;
       var positionBox = $(sprintf(".%s", position));
       var positionBoxId = positionBox.attr("id");
-      // Remove old box
       if (boxIdToFace.hasOwnProperty(gamePlayerIdToBoxId[gamePlayerPk])) {
         var oldPositionBox = $(sprintf("#%s", gamePlayerIdToBoxId[gamePlayerPk]));
         flipPlayerBox(oldPositionBox, gamePlayerIdToBoxId[gamePlayerPk]);
@@ -138,10 +137,10 @@ function arrangePlayers() {
       var playerBox = $("#playerBox").clone();
       playerBox.attr("id", gamePlayerPk);
       playerBox.find(".avatar").attr("src", gamePlayer.player.avatar || DEFAULT_PROFILE_PIC);
-
       updateScoresOnLoad(playerBox, gamePlayer.score, gamePlayer.won);
 
       flipPlayerBox(positionBox, positionBoxId, playerBox);
+
       gamePlayerIdToBoxId[gamePlayerPk] = positionBoxId;
     }
     if (game.status === "dealt" && gamePlayer.status === "active") {
@@ -233,9 +232,8 @@ function getCards(session) {
      alert(err.responseText);
    });
 }
-
-
 $(".player-card").drags({revert: true});
+
 
 $(".play-action").drops({
   accept: ".player-card",
@@ -281,6 +279,7 @@ $("#textInput").keypress(
   }
  });
 
+
 function processDrop(gamePlayerPk, avatar, cards) {
   for (var i = 0; i < cards.length; i++) {
     $(sprintf("#%s", gamePlayerPk)).find(sprintf(".card%s", cards[i].index + 1)).hide("fast");
@@ -289,8 +288,8 @@ function processDrop(gamePlayerPk, avatar, cards) {
     cardImage.attr("src", sprintf("img/cards/svg/%s.svg", cards[i].card));
     cardImage.css("z-index", ++maxZIndex);
     cardImage.css("-webkit-transform", sprintf("rotateZ(%sdeg)", getRandom(20)));
-
     var dropHolder = $(sprintf("#%s-drops", gamePlayerPk));
+
     dropHolder.find(".player-drop-cards").append(cardImage);
     dropHolder.find(".board-pic").attr("src", avatar);
     dropHolder.animate().css("visibility", "visible");
@@ -313,12 +312,10 @@ function processReady(gamePlayerPk, avatar, cards, playType) {
   $(sprintf("#%s", gamePlayerPk)).find(".readyButton").removeClass("player-not-ready");
   gamePlayerPkToGamePlayer[gamePlayerPk].status = "ready";
 }
-
-
 $("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
   if (!$(this).hasClass("player-not-ready")) {
     if ($("#local").length) {
-      window.playerStream.stop();
+      window.peer.destroy();
       $("#local").replaceWith(window.avatarImage);
     } else {
       setupVideo();
@@ -338,45 +335,77 @@ $("#{{ gamePlayer.uuid }}").find(".readyButton").click(function() {
     });
 });
 
+
+
 function setupVideo() {
-  rtc.connect('ws://spargame.com:8001', "{{ game.uuid }}");
+  window.peer = new Peer(window.gamePlayerId, {host: 'spargame.com', port: 8001});
+  peer.on('open', function(id) {
+    console.log('My peer ID is: ' + id);
+  });
   var handAvatar = $("#{{ gamePlayer.uuid }}").find(".hand-avatar");
   window.avatarImage = handAvatar;
   var video = $("#player-video").clone();
   video.attr("id", "local");
   handAvatar.replaceWith(video);
-  rtc.createStream({
-    "video" : true,
-    "audio" : false
-  }, function(stream) {
+  createStream(function(stream) {
     // get local stream for manipulation
     window.playerStream = stream;
-    rtc.attachStream(stream, 'local');
+    console.log("about to attach streeam");
+    attachStream(stream, 'local');
+
+    for (var gamePlayerPk in gamePlayerPkToGamePlayer) {
+      if (gamePlayerPk !== "{{ gamePlayer.uuid }}") {
+        !function outer(gamePlayerPk) {
+          console.log(gamePlayerPk + "!=" + "{{ gamePlayer.uuid }}")
+          peer.on('call', function(call) {
+            // Answer the call, providing our mediaStream
+            call.answer(stream);
+            console.log("Sending stream to: " + call.peer);
+            showPeerVideo(call);
+          });
+          var call = peer.call(gamePlayerPk, stream);
+          if (call) {
+            showPeerVideo(call);
+          }
+        }(gamePlayerPk);
+      }
+    }
   });
 
-  for (var gamePlayerPk in gamePlayerPkToGamePlayer) {
-    var videoId = "remote-" + gamePlayerPk;
-    console.log("creating callback for: " + videoId);
-    rtc.on(videoId, function (stream) {
-      console.log(sprintf("Got webrtc for %s my gamePlayerPk is {{ gamePlayer.uuid }}", sprintf("%s-open", gamePlayerPk)));
-      // show the remote video
-      var video = $("#player-video").clone();
-      video.attr("id", videoId);
-      var handAvatar = $(sprintf("#%s", gamePlayerPk)).find(".hand-avatar");
-      window.gamePlayerIdToHandAvatars[gamePlayerPk] = handAvatar;
-      handAvatar.replaceWith(video);
-      rtc.attachStream(stream, videoId);
-    });
 
-    var disconnectId = "disconnect-" + gamePlayerPk;
-    console.log("creating callback for: " + disconnectId);
-    rtc.on(disconnectId, function (stream) {
-      console.log(sprintf("Got disc for %s my gamePlayerPk is {{ gamePlayer.uuid }}", sprintf("%s-open", gamePlayerPk)));
-      // show the remote video
-      var video = $("#" + videoId);
-      console.log(video);
-      var handAvatar = window.gamePlayerIdToHandAvatars[gamePlayerPk];
+}
+
+function showPeerVideo(call) {
+  call.on('stream', function (stream) {
+    var gamePlayerPk = call.peer;
+    var videoId = "remote-" + gamePlayerPk;
+    console.log("Creating peer for: " + videoId);
+    console.log("receiving stream from: " + videoId);
+    var video = $("#player-video").clone();
+    video.attr("id", videoId);
+    console.log("Replacing " + gamePlayerPk);
+    var handAvatar = $(sprintf("#%s", gamePlayerPk)).find(".hand-avatar");
+    if (handAvatar.length) {
+      window.gamePlayerIdToHandAvatars[gamePlayerPk] = handAvatar;
+      console.log(handAvatar);
+      console.log(handAvatar.length);
+      handAvatar.replaceWith(video);
+      // `stream` is the MediaStream of the remote peer.
+      // Here you'd add it to an HTML video/canvas element.
+      attachStream(stream, videoId);
+    }
+  });
+
+  call.on('close', function() {
+    var gamePlayerPk = call.peer;
+    var videoId = "remote-" + gamePlayerPk;
+    console.log(sprintf("Got disc for %s my gamePlayerPk is {{ gamePlayer.uuid }}", gamePlayerPk));
+    // hide the remote video
+    var video = $("#" + videoId);
+    console.log(window.gamePlayerIdToHandAvatars);
+    var handAvatar = window.gamePlayerIdToHandAvatars[gamePlayerPk];
+    if (handAvatar) {
       video.replaceWith(handAvatar);
-    });
-  }
+    }
+  });
 }
