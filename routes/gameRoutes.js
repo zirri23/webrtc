@@ -5,7 +5,6 @@ var engine = require("../engine/gameEngine");
 
 exports.createGame = function(req, res, models, io, t) {
   models.Game.forge({creator: req.user.id, uuid: uuid.v4()}).save(null, {transacting: t}).then(function (game) {
-    console.log("Created a game with id: " + game.get("uuid"));
     models.GamePlayer.forge({
       game_id: game.get("id"),
       game_uuid: game.get("uuid"),
@@ -164,7 +163,6 @@ exports.getCards = gamePlayerDependent(["game", "game.gamePlayers"], function(re
 
 exports.getGameVersion = function(req, res, models, io) {
   models.Game.where({uuid: req.body.gamePk}).fetch().then(function(game) {
-    console.log(game.getMetadata("version"));
     res.send({version: game.getMetadata("version")});
   });
 };

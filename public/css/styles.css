@@ -224,6 +224,7 @@ body {
 	position: relative;
 	z-index: 100;
 	margin-left: 74px;
+  background: white;
 	margin-top: 40px;
 }
 
@@ -249,4 +250,5 @@ body {
   z-index: 100;
   margin-left: 74px;
   margin-top: 40px;
+  background: white;
 }

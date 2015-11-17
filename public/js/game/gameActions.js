@@ -7,7 +7,6 @@ socket.emit("set game", {
   player: "{{ player.uuid }}",
   name: "{{ player.name }}",
   avatar: "{{ player.avatar }}" || DEFAULT_PROFILE_PIC});
-console.log("{{gamePlayer.game_id}}");
 
 window.maxZIndex = 0;
 
@@ -36,7 +35,6 @@ var versionChecker = setInterval(function() {
       getCards(game.session);
       window.game.version = data.version;
     }
-    console.log("The game version is: " + data.version);
   })
   .error(function(err) {
     clearInterval(versionChecker);
@@ -357,13 +355,11 @@ function setupVideo() {
   createStream(function(stream) {
     // get local stream for manipulation
     window.playerStream = stream;
-    console.log("about to attach streeam");
     attachStream(stream, 'local', "{{ gamePlayer.uuid }}");
 
     for (var gamePlayerPk in gamePlayerPkToGamePlayer) {
       if (gamePlayerPk !== "{{ gamePlayer.uuid }}") {
         !function outer(gamePlayerPk) {
-          console.log(gamePlayerPk + "!=" + "{{ gamePlayer.uuid }}")
           peer.on('call', function(call) {
             // Answer the call, providing our mediaStream
             call.answer(stream);
@@ -384,20 +380,18 @@ function showPeerVideo(call) {
   call.on('stream', function (stream) {
     var gamePlayerPk = call.peer;
     var videoId = "remote-" + gamePlayerPk;
-    console.log("Creating peer for: " + videoId);
     console.log("receiving stream from: " + videoId);
+
     var videoDiv = $("#video-div").clone();
     videoDiv.attr("id", videoId + "-div");
     var videoCanvas = videoDiv.find("#player-video-canvas");
     videoCanvas.attr("id", videoId + "-canvas");
     var video = videoDiv.find("#player-video");
     video.attr("id", videoId);
-    console.log("Replacing " + gamePlayerPk);
+
     var handAvatar = $(sprintf("#%s", gamePlayerPk)).find(".hand-avatar");
     if (handAvatar.length) {
       window.gamePlayerIdToHandAvatars[gamePlayerPk] = handAvatar;
-      console.log(handAvatar);
-      console.log(handAvatar.length);
       handAvatar.replaceWith(videoDiv);
       // `stream` is the MediaStream of the remote peer.
       // Here you'd add it to an HTML video/canvas element.
@@ -411,7 +405,6 @@ function showPeerVideo(call) {
     console.log(sprintf("Got disc for %s my gamePlayerPk is {{ gamePlayer.uuid }}", gamePlayerPk));
     // hide the remote video
     var video = $("#" + videoId + "-div");
-    console.log(window.gamePlayerIdToHandAvatars);
     var handAvatar = window.gamePlayerIdToHandAvatars[gamePlayerPk];
     if (handAvatar) {
       video.replaceWith(handAvatar);
