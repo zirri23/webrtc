@@ -1,5 +1,4 @@
 var cards = require("../cards");
-var util = require("util");
 
 exports.DealHandler = {
   handlePlay: function(play, game, gamePlayer, models, t, callback) {
