@@ -3,7 +3,7 @@ var sockets = require("../sockets");
 var util = require("util");
 var engine = require("../engine/gameEngine");
 
-exports.createGame = function(req, res, models, io, t) {
+function createGame(req, res, models, io, t, callback) {
   models.Game.forge({creator: req.user.id, uuid: uuid.v4()}).save(null, {transacting: t}).then(function (game) {
     models.GamePlayer.forge({
       game_id: game.get("id"),
@@ -13,17 +13,7 @@ exports.createGame = function(req, res, models, io, t) {
       uuid: uuid.v4()
     }).save(null, {transacting: t}).then(function(gamePlayer) {
       gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
-        engine.handlePlay(gamePlayer, gamePlayer.related("game"), "init", {}, models, t, function(err, result) {
-          engine.handlePlay(gamePlayer, gamePlayer.related("game"), "join", {}, models, t, function(err, result) {
-            if (!err) {
-              t.commit();
-              res.send({gameId: game.get("uuid")});
-            } else {
-              t.rollback();
-              res.send(500, "Unable to create Game " + JSON.stringify(err));
-            }
-          });
-        });
+        callback(gamePlayer, models, t);
       });
     }).catch(function(err) {
       t.rollback();
@@ -34,6 +24,42 @@ exports.createGame = function(req, res, models, io, t) {
     res.send(500, "Unable to create Game: " + JSON.stringify(err));
   });
 };
+
+exports.createGame = function(req, res, models, io, t) {
+  createGame(req, res, models, io, t, function(gamePlayer, models, t) {
+    gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
+      engine.handlePlay(gamePlayer, gamePlayer.related("game"), "init", {}, models, t, function(err, result) {
+        engine.handlePlay(gamePlayer, gamePlayer.related("game"), "join", {}, models, t, function(err, result) {
+          if (!err) {
+            t.commit();
+            res.send({gameId: game.get("uuid")});
+          } else {
+            t.rollback();
+            res.send(500, "Unable to create Game " + JSON.stringify(err));
+          }
+        });
+      });
+    });
+  });
+};
+
+exports.createSinglePlayerGame = function(req, res, models, io, t) {
+  createGame(req, res, models, io, t, function(gamePlayer, models, t) {
+    gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
+      engine.handlePlay(gamePlayer, gamePlayer.related("game"), "init", {}, models, t, function(err, result) {
+        engine.handlePlay(gamePlayer, gamePlayer.related("game"), "join", {}, models, t, function(err, result) {
+          if (!err) {
+            t.commit();
+            res.send({gameId: game.get("uuid")});
+          } else {
+            t.rollback();
+            res.send(500, "Unable to create Game " + JSON.stringify(err));
+          }
+        });
+      });
+    });
+  });
+}
 
 exports.playGame = function(req, res, models, io) {
   var gameId = req.query.gameId;
@@ -51,10 +77,6 @@ exports.playGame = function(req, res, models, io) {
   }).catch(function(err) {
     res.send(500, util.format("%s is not a member of this game", req.user.get("uuid")));
   });
-};
-
-exports.video = function(req, res) {
-  res.render("game/video.html", {});
 };
 
 exports.joinGame = function(req, res, models, io, t) {
@@ -123,7 +145,8 @@ exports.sendChatMessage = gamePlayerDependent([], function(req, res, models, io,
 exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"],
   function(req, res, models, io, t, gamePlayer) {
     var b = req.body;
-    engine.handlePlay(gamePlayer, gamePlayer.related("game"), b.type, b.metadata, models, t, function(err, details) {
+    var gamePlayerPk = req.body.gamePlayerPk;
+    engine.handlePlay(gamePlayerPk, gamePlayer.related("game"), b.type, b.metadata, models, t, function(err, details) {
       if (err) {
         t.rollback();
         res.send(500, err);
@@ -137,6 +160,16 @@ exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"
           senderPk: gamePlayer.get("uuid"),
           avatar: b.avatar
         });
+        if (details.botPlay) {
+          sockets.broadcastMessage(io, b.type, b.gamePk, {
+            details: details,
+            sender: "Bot",
+            type: b.type,
+            time: new Date().getTime(),
+            senderPk: details.botPlay.botPlayer,
+            avatar: b.avatar
+          });
+        }
         res.send(200);
       }
     });

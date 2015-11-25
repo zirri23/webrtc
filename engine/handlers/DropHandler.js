@@ -159,7 +159,6 @@ function processScores(session, game, gameMetadata, gamePlayers, sessionComplete
 
     for (var i = leadPlays.length - 1; i >= 0; i--) {
       var cardPlay = leadPlays[i].getMetadata("cards")[0];
-      console.log("Heres one play: " + JSON.stringify(cardPlay));
       var card = cards.valueOf(cardPlay.card);
       if (card.rank.value <= 7) {
         score += pointsMap[card.rank.value][cardPlay.modifier];
@@ -174,7 +173,6 @@ function processScores(session, game, gameMetadata, gamePlayers, sessionComplete
     gameMetadata.status = "undealt";
     gameMetadata.session++;
     gamePlayerMetadata.score += score;
-    console.log("Setting the score for: " + leadGamePlayer.get("uuid") + " to: " + gamePlayerMetadata.score);
     gamePlayerMetadata.won += 1;
     leadGamePlayer.setAllMetadata(gamePlayerMetadata);
   }

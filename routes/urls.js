@@ -3,7 +3,6 @@ var authRoutes = require('./authRoutes');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 var gameRoutes = require('./gameRoutes');
 
-
 function route(app, Bookshelf, io) {
 
   function withoutTransaction(callback) {
@@ -34,7 +33,6 @@ function route(app, Bookshelf, io) {
   app.post('/sendPlay', ensureLoggedIn('/login'), withTransaction(gameRoutes.sendPlay));
   app.post('/getCards', ensureLoggedIn('/login'), withTransaction(gameRoutes.getCards));
   app.post('/getGameVersion', withoutTransaction(gameRoutes.getGameVersion));
-  app.get('/video', gameRoutes.video);
 }
 
 post = function(url, route) {
@@ -44,5 +42,4 @@ post = function(url, route) {
 get = function(url, route) {
   app.get(url, ensureLoggedIn('/login'), route);
 }
-
 exports.route = route;
