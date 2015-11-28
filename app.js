@@ -12,7 +12,8 @@ var express = require('express')
   , signup = require("./signup")
   , swig = require("swig")
   , cookieParser = require('cookie-parser')
-  , path = require('path');
+  , path = require('path')
+  , uuid = require("node-uuid");
 
 var env = process.env.NODE_ENV || 'dev';
 
@@ -52,19 +53,38 @@ if ('dev' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-var Bookshelf = require('./models/models');
+var models = require('./models/models');
 
-var server = http.createServer(app);
-
-var io = sockets.handle(
-    server, cookieParser, sessionStore, sessionSecret);
-
-server.listen(app.get('port'), function() {
-  console.log('Express server listening on port ' + app.get('port') +
-      " in " + env + " mode.");
+models.Player.where({remote_id: -1}).fetch().then(function (botPlayer) {
+  if (!botPlayer) {
+    console.log("Bot player not found. Forging bot player");
+    models.Player.forge({
+      remote_id: "-1",
+      uuid: uuid.v4(),
+      name: "Bot"
+    }).save().then(function (player) {
+      init();
+    }).catch(function (err) {
+      console.log("Unable to forge bot player: " + JSON.stringify(err));
+    });
+  } else {
+    console.log("Bot player found");
+    init();
+  }
 });
 
-signup.initSignups(env, Bookshelf);
+function init() {
+  var server = http.createServer(app);
 
-urls.route(app, Bookshelf, io);
+  var io = sockets.handle(
+      server, cookieParser, sessionStore, sessionSecret);
 
+  server.listen(app.get('port'), function() {
+    console.log('Express server listening on port ' + app.get('port') +
+        " in " + env + " mode.");
+  });
+
+  signup.initSignups(env, models);
+
+  urls.route(app, models, io);
+}

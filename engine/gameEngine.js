@@ -18,8 +18,11 @@ var playHandlerMap = {
   "show-dry": DryHandler,
 };
 
+var BOTS = {BASIC: "basic"};
+exports.BOTS = BOTS;
+
 var botMap = {
-  "basic"   : BasicBot,
+  "basic"   : BOTS.BASIC,
 }
 
 exports.handlePlay = function(gamePlayerPk, game, type, metadata, models, t, callback) {
@@ -56,26 +59,43 @@ exports.handlePlay = function(gamePlayerPk, game, type, metadata, models, t, cal
 };
 
 exports.createBot = function(game, botType, models, t, callback) {
-  models.Player.where({id: -1}).then
+  console.log("Inside create bot");
+  models.Player.where({remote_id: -1}).fetch({transacting: t}).then(function(botPlayer) {
+    if (!botPlayer) {
+      callback("Bot player not found", null);
+    } else {
+      console.log("Bot player found");
+      createBotFromPlayer(botPlayer, game, models, t, callback);
+    }
+  });
+}
+
+function createBotFromPlayer(player, game, models, t, callback) {
+  console.log("Creating Bot: " + player.id);
   models.GamePlayer.forge({
     game_id: game.get("id"),
     game_uuid: game.get("uuid"),
-    player_id: -1,
-    player_uuid: "-1",
+    player_id: player.get("id"),
+    player_uuid: player.get("uuid"),
     uuid: uuid.v4()
   }).save(null, {transacting: t}).then(function(gamePlayer) {
-    gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
-      callback(gamePlayer, models, t);
+    console.log("Bot Gameplayer created");
+    console.log("Initing: " + gamePlayer.get("uuid"));
+    game.refresh({withRelated: ["gamePlayers"], transacting: t}).then(function(game) {
+      console.log("Refreshed game, initing bot");
+      exports.handlePlay(gamePlayer.get("uuid"), game, "join", {}, models, t, callback);
     });
   }).catch(function(err) {
-    t.rollback();
-    res.send(500, "Unable to create GamePlayer: " + JSON.stringify(err));
+    callback(err, null);
   });
 }
 
 function handleBotPlays(game, type, models, t, callback) {
-  var nextGamePlayer = game.related("gamePlayers").findWhere({uuid: game.getMetadata("turnGamePlayer")});
-  console.log(nextGamePlayer);
+  var nextGamePlayerPk = game.getMetadata("turnGamePlayer");
+  if (!nextGamePlayerPk) {
+    callback({});
+  }
+  var nextGamePlayer = game.related("gamePlayers").findWhere({uuid: nextGamePlayerPk});
   var botPk = nextGamePlayer.get("uuid");
   if (nextGamePlayer.getMetadata("isBot")) {
     var botType = nextGamePlayer.getMetadata("botType");

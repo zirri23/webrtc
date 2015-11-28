@@ -5,9 +5,9 @@
 {% block sidebar %}
 <div class="menu" style="margin-top: 20px;">
   <ul class="nav nav-tabs nav-stacked">
-    <li><a id="singlePlayer" href="#">Single Player</a></li>
+    <li><a href="#" id="multiPlayer">New Multiplayer</a></li>
     <li><a href="#">Browse Games</a></li>
-    <li><a href="#">Create Game</a></li>
+    <li><a href="#" id="singlePlayer">Single Player</a></li>
   </ul>
 </div>
 {% endblock %}
@@ -21,18 +21,31 @@
 $(document).ready(function() {
 	$(".falling").draggable();
 
-    $("#singlePlayer").click(function() {
-        $.post("/createGame/", {
-          _csrf: "{{ csrfToken }}",
-        })
-        .success(function(data) {
-          window.location.href = "/playGame?gameId=" + data.gameId;
-        })
-        .error(function(err){
-          console.log(err);
-          alert(err.responseText);
-        });
+  $("#singlePlayer").click(function() {
+    $.post("/createSinglePlayerGame/", {
+      _csrf: "{{ csrfToken }}",
+    })
+    .success(function(data) {
+      window.location.href = "/playGame?gameId=" + data.gameId;
+    })
+    .error(function(err){
+      console.log(err);
+      alert(err.responseText);
     });
+  });
+
+  $("#multiPlayer").click(function() {
+    $.post("/createGame/", {
+      _csrf: "{{ csrfToken }}",
+    })
+    .success(function(data) {
+      window.location.href = "/playGame?gameId=" + data.gameId;
+    })
+    .error(function(err){
+      console.log(err);
+      alert(err.responseText);
+    });
+  });
 });
 </script>
 {% endblock %}

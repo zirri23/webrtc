@@ -2,9 +2,12 @@ var uuid = require("node-uuid");
 var sockets = require("../sockets");
 var util = require("util");
 var engine = require("../engine/gameEngine");
+var BOTS = engine.BOTS;
 
-function createGame(req, res, models, io, t, callback) {
+function createGameHelper(req, res, models, io, t, callback) {
+  console.log("Inside helper");
   models.Game.forge({creator: req.user.id, uuid: uuid.v4()}).save(null, {transacting: t}).then(function (game) {
+    console.log("Game saved");
     models.GamePlayer.forge({
       game_id: game.get("id"),
       game_uuid: game.get("uuid"),
@@ -12,8 +15,10 @@ function createGame(req, res, models, io, t, callback) {
       player_uuid: req.user.get("uuid"),
       uuid: uuid.v4()
     }).save(null, {transacting: t}).then(function(gamePlayer) {
+      console.log("GamePlayer saved");
       gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
-        callback(gamePlayer, models, t);
+        console.log("GamePlayer refreshed");
+        callback(gamePlayer);
       });
     }).catch(function(err) {
       t.rollback();
@@ -26,28 +31,44 @@ function createGame(req, res, models, io, t, callback) {
 };
 
 exports.createGame = function(req, res, models, io, t) {
-  createGame(req, res, models, io, t, function(gamePlayer, models, t) {
-    gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
-      engine.handlePlay(gamePlayer, gamePlayer.related("game"), "init", {}, models, t, function(err, result) {
-        engine.handlePlay(gamePlayer, gamePlayer.related("game"), "join", {}, models, t, function(err, result) {
-          if (!err) {
-            t.commit();
-            res.send({gameId: game.get("uuid")});
-          } else {
-            t.rollback();
-            res.send(500, "Unable to create Game " + JSON.stringify(err));
-          }
-        });
+  createGameHelper(req, res, models, io, t, function(gamePlayer) {
+    var gamePlayerPk = gamePlayer.get("uuid");
+    var game = gamePlayer.related("game");
+    engine.handlePlay(gamePlayerPk, game, "init", {}, models, t, function(err, result) {
+      engine.handlePlay(gamePlayerPk, game, "join", {}, models, t, function(err, result) {
+        if (!err) {
+          t.commit();
+          res.send({gameId: game.get("uuid")});
+        } else {
+          t.rollback();
+          res.send(500, "Unable to create Game " + JSON.stringify(err));
+        }
       });
     });
   });
 };
 
 exports.createSinglePlayerGame = function(req, res, models, io, t) {
-  createGame(req, res, models, io, t, function(gamePlayer, models, t) {
-    gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
-      engine.handlePlay(gamePlayer, gamePlayer.related("game"), "init", {}, models, t, function(err, result) {
-        engine.handlePlay(gamePlayer, gamePlayer.related("game"), "join", {}, models, t, function(err, result) {
+  createGameHelper(req, res, models, io, t, function(gamePlayer) {
+    console.log("Helper done");
+    var game = gamePlayer.related("game");
+    engine.createBot(game, BOTS.BASIC, models, t, function(err, result) {
+      console.log("Bot created");
+      if (err) {
+        t.rollback();
+        res.send(500, "Unable to create Bot " + JSON.stringify(err));
+        return;
+      }
+      var gamePlayerPk = gamePlayer.get("uuid");
+      engine.handlePlay(gamePlayerPk, gamePlayer.related("game"), "init", {}, models, t, function(err, result) {
+        console.log("Inited");
+        if (err) {
+          t.rollback();
+          res.send(500, "Unable to create GamePlayer " + JSON.stringify(err));
+          return;
+        }
+        engine.handlePlay(gamePlayerPk, gamePlayer.related("game"), "join", {}, models, t, function(err, result) {
+          console.log("Joined");
           if (!err) {
             t.commit();
             res.send({gameId: game.get("uuid")});
@@ -95,7 +116,8 @@ exports.joinGame = function(req, res, models, io, t) {
         player_uuid: req.user.get("uuid"),
         uuid: uuid.v4()
       }).save(null, {transacting: t}).then(function (gamePlayer) {
-        engine.handlePlay(gamePlayer, game, "join", {}, models, t, function(err, result) {
+        var gamePlayerPk = gamePlayer.get("uuid");
+        engine.handlePlay(gamePlayerPk, game, "join", {}, models, t, function(err, result) {
           if (!err) {
             t.commit();
             gamePlayer.set("player", req.user);

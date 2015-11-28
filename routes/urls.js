@@ -28,6 +28,7 @@ function route(app, Bookshelf, io) {
   app.get('/playGame', ensureLoggedIn('/login'), withoutTransaction(gameRoutes.playGame));
   app.post('/joinGame', ensureLoggedIn('/login'), withTransaction(gameRoutes.joinGame));
   app.post('/createGame', ensureLoggedIn('/login'), withTransaction(gameRoutes.createGame));
+  app.post('/createSinglePlayerGame', ensureLoggedIn('/login'), withTransaction(gameRoutes.createSinglePlayerGame));
   app.post('/queryGames', ensureLoggedIn('/login'), withoutTransaction(gameRoutes.queryGames));
   app.post('/sendChatMessage', ensureLoggedIn('/login'), withTransaction(gameRoutes.sendChatMessage));
   app.post('/sendPlay', ensureLoggedIn('/login'), withTransaction(gameRoutes.sendPlay));
