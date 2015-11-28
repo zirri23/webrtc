@@ -22,7 +22,7 @@ var BOTS = {BASIC: "basic"};
 exports.BOTS = BOTS;
 
 var botMap = {
-  "basic"   : BOTS.BASIC,
+  "basic"   : BasicBot,
 }
 
 exports.handlePlay = function(gamePlayerPk, game, type, metadata, models, t, callback) {
@@ -43,15 +43,17 @@ exports.handlePlay = function(gamePlayerPk, game, type, metadata, models, t, cal
   playHandlerMap[play.getMetadata("type")].handlePlay(
     play, game, gamePlayer, models, t,
     function(err, details) {
-      handleBotPlays(game, type, models, t, function(botPlay) {
+      console.log("Done handling play: " + type);
         play.setAllMetadata(details);
         play.save(null, {transacting: t}).then(function(play) {
-          var version = game.getMetadata("version") + 1;
-          game.setMetadata("version", version);
-          game.save(null, {transacting: t}).then(function(game) {
-            details["version"] = version;
-            details["botPlay"] = botPlay;
-            callback(err, details);
+          handleBotPlays(gamePlayer, game, type, models, t, function(err, botPlay) {
+            console.log("Done handling bot play: " + type);
+            var version = game.getMetadata("version") + 1;
+            game.setMetadata("version", version);
+            game.save(null, {transacting: t}).then(function(game) {
+              details["version"] = version;
+              details["botPlay"] = botPlay;
+              callback(err, details);
           });
         });
       });
@@ -65,12 +67,12 @@ exports.createBot = function(game, botType, models, t, callback) {
       callback("Bot player not found", null);
     } else {
       console.log("Bot player found");
-      createBotFromPlayer(botPlayer, game, models, t, callback);
+      createBotFromPlayer(botPlayer, botType, game, models, t, callback);
     }
   });
 }
 
-function createBotFromPlayer(player, game, models, t, callback) {
+function createBotFromPlayer(player, botType, game, models, t, callback) {
   console.log("Creating Bot: " + player.id);
   models.GamePlayer.forge({
     game_id: game.get("id"),
@@ -79,29 +81,48 @@ function createBotFromPlayer(player, game, models, t, callback) {
     player_uuid: player.get("uuid"),
     uuid: uuid.v4()
   }).save(null, {transacting: t}).then(function(gamePlayer) {
-    console.log("Bot Gameplayer created");
-    console.log("Initing: " + gamePlayer.get("uuid"));
-    game.refresh({withRelated: ["gamePlayers"], transacting: t}).then(function(game) {
-      console.log("Refreshed game, initing bot");
-      exports.handlePlay(gamePlayer.get("uuid"), game, "join", {}, models, t, callback);
+    gamePlayer.setMetadata("isBot", "true");
+    gamePlayer.setMetadata("botType", botType);
+    gamePlayer.save(null, {transacting: t}).then(function(gamePlayer) {
+      console.log("Bot Gameplayer created");
+      console.log("Initing: " + gamePlayer.get("uuid"));
+      game.refresh({withRelated: ["gamePlayers"], transacting: t}).then(function(game) {
+        console.log("Refreshed game, initing bot");
+        exports.handlePlay(gamePlayer.get("uuid"), game, "join", {}, models, t, callback);
+      });
     });
   }).catch(function(err) {
     callback(err, null);
   });
 }
 
-function handleBotPlays(game, type, models, t, callback) {
-  var nextGamePlayerPk = game.getMetadata("turnGamePlayer");
-  if (!nextGamePlayerPk) {
-    callback({});
+function handleBotPlays(gamePlayer, game, type, models, t, callback) {
+  console.log("Trying to do bot play for: " + type);
+  if (gamePlayer.getMetadata("isBot")) {
+    console.log("Current player is the bot. Exit loop");
+    return callback(null, null);
   }
-  var nextGamePlayer = game.related("gamePlayers").findWhere({uuid: nextGamePlayerPk});
-  var botPk = nextGamePlayer.get("uuid");
-  if (nextGamePlayer.getMetadata("isBot")) {
-    var botType = nextGamePlayer.getMetadata("botType");
-    var metadata = playHandlerMap[botType].handle(game, nextGamePlayer, models, t);
-    exports.handlePlay(botPk, game, type, metadata, models, t, callback);
-  } else {
-    callback({});
+  var botGamePlayer = game.related("gamePlayers").find(function(gamePlayer) {
+    return gamePlayer.getMetadata("isBot");
+  });
+  if (!botGamePlayer) {
+    console.log("No bot player. Skipping");
+    return callback(null, null);
   }
+  var botPk = botGamePlayer.get("uuid");
+  var botType = botGamePlayer.getMetadata("botType");
+  console.log("Calling bot type: " + botType);
+  console.log("Bot handlers are: " + JSON.stringify(botMap));
+  console.log("Bot handler is: " + JSON.stringify(botMap[botType]));
+  botMap[botType].handlePlay(game, botGamePlayer, models, t, function(response) {
+    if (!response) {
+      console.log("No response. Skipping");
+      return callback(null, null);
+    }
+    console.log("Got a response from bot: " + JSON.stringify(response));
+    console.log("Doing: " + response["play"] + " for " + botPk);
+    exports.handlePlay(botPk, game, response["play"], response["metadata"], models, t, function(err, details) {
+      callback(null, {type: response["play"], botPlayer: botPk});
+    });
+  });
 }
