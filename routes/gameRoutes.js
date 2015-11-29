@@ -185,7 +185,7 @@ exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"
         if (details.botPlay) {
           console.log("Bot play: " + JSON.stringify(details.botPlay));
           sockets.broadcastMessage(io, b.type, b.gamePk, {
-            details: details,
+            details: details.botPlay.details,
             sender: "Bot",
             type: details.botPlay.type,
             time: new Date().getTime(),

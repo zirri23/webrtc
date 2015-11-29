@@ -40,24 +40,29 @@ exports.handlePlay = function(gamePlayerPk, game, type, metadata, models, t, cal
   play.setMetadata("type", type);
 
   play.setAllMetadata(metadata);
-  playHandlerMap[play.getMetadata("type")].handlePlay(
-    play, game, gamePlayer, models, t,
-    function(err, details) {
-      console.log("Done handling play: " + type);
-        play.setAllMetadata(details);
-        play.save(null, {transacting: t}).then(function(play) {
-          handleBotPlays(gamePlayer, game, type, models, t, function(err, botPlay) {
-            console.log("Done handling bot play: " + type);
-            var version = game.getMetadata("version") + 1;
-            game.setMetadata("version", version);
-            game.save(null, {transacting: t}).then(function(game) {
-              details["version"] = version;
-              details["botPlay"] = botPlay;
-              callback(err, details);
+  game.save(null, {transacting: t}).then(function(game) {
+    playHandlerMap[play.getMetadata("type")].handlePlay(
+        play, game, gamePlayer, models, t,
+        function (err, details) {
+          if (err) {
+            return callback(err, null);
+          }
+          console.log("Done handling play: " + type);
+          play.setAllMetadata(details);
+          play.save(null, {transacting: t}).then(function (play) {
+            handleBotPlays(gamePlayer, game, type, models, t, function (err, botPlay) {
+              console.log("Done handling bot play: " + type);
+              var version = game.getMetadata("version") + 1;
+              game.setMetadata("version", version);
+              game.save(null, {transacting: t}).then(function (game) {
+                details["version"] = version;
+                details["botPlay"] = botPlay;
+                callback(err, details);
+              });
+            });
           });
         });
-      });
-    });
+  });
 };
 
 exports.createBot = function(game, botType, models, t, callback) {
@@ -103,7 +108,7 @@ function handleBotPlays(gamePlayer, game, type, models, t, callback) {
     return callback(null, null);
   }
   var botGamePlayer = game.related("gamePlayers").find(function(gamePlayer) {
-    return gamePlayer.getMetadata("isBot");
+    return gamePlayer.getMetadata("isBot") == "true";
   });
   if (!botGamePlayer) {
     console.log("No bot player. Skipping");
@@ -114,7 +119,10 @@ function handleBotPlays(gamePlayer, game, type, models, t, callback) {
   console.log("Calling bot type: " + botType);
   console.log("Bot handlers are: " + JSON.stringify(botMap));
   console.log("Bot handler is: " + JSON.stringify(botMap[botType]));
-  botMap[botType].handlePlay(game, botGamePlayer, models, t, function(response) {
+  botMap[botType].handlePlay(game, botGamePlayer, models, t, function(err, response) {
+    if (err) {
+      callback(err, null);
+    }
     if (!response) {
       console.log("No response. Skipping");
       return callback(null, null);
@@ -122,7 +130,11 @@ function handleBotPlays(gamePlayer, game, type, models, t, callback) {
     console.log("Got a response from bot: " + JSON.stringify(response));
     console.log("Doing: " + response["play"] + " for " + botPk);
     exports.handlePlay(botPk, game, response["play"], response["metadata"], models, t, function(err, details) {
-      callback(null, {type: response["play"], botPlayer: botPk});
+      if (err) {
+        return callback(err, null);
+      }
+      console.log("Done handling play: " + response["play"] + " with results: " + JSON.stringify(details));
+      callback(null, {type: response["play"], botPlayer: botPk, details: details});
     });
   });
 }

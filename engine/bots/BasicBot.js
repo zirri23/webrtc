@@ -12,31 +12,31 @@ exports.BasicBot = {
       console.log("The last play was: " + JSON.stringify(lastPlay));
       if (lastPlay.getMetadata("type") == "ready") {
         console.log("Replying to a ready play");
-        callback({play: "ready"});
+        callback("", {play: "ready"});
       } else if (lastPlay.getMetadata("type") == "init") {
         if (game.getMetadata("turnGamePlayer") == botPlayer.get("uuid")) {
           console.log("Bot is dealer, dealing");
-          callback({play: "deal", metadata: {}});
+          callback("", {play: "deal", metadata: {}});
         } else {
           console.log("Bot is not dealer, not dealing");
-          callback(null);
+          callback("", null);
         }
-      } else if (lastPlay.getMetadata("type") == "play") {
+      } else if (lastPlay.getMetadata("type") == "drop") {
         console.log("Replying to a play play");
         if (game.getMetadata("turnGamePlayer") !== botPlayer.get("uuid")) {
-          callback(null);
+          callback("", null);
         }
         var leadCard = cards.valueOf(game.getMetadata("leadCard"));
 
-        var hand = botPlayer.getMetadata("hand")[game.getMetadata("session")];
-        var cardToPlay = hand.filter(function(card) {
-          return card.play == "unplayed" && cards.value(card.card).suit == leadCard.suit;
+        var hand = botPlayer.getMetadata("hands")[game.getMetadata("session")];
+        var cardToPlay = hand.find(function(card) {
+          return card.play == "unplayed" && cards.valueOf(card.card).suit == leadCard.suit;
         });
 
-        callback({play: "drop", cards: [cardToPlay.fileFormat()]});
+        callback("", {play: "drop", metadata: {cards: [cardToPlay]}});
       } else {
         console.log("Could not reply to play: " + JSON.stringify(lastPlay));
-        callback(null);
+        callback("", null);
       }
     });
   }
