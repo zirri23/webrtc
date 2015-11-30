@@ -46,7 +46,9 @@ function sendPlayToChat(message) {
 
 socket.on(sprintf("deal/%s", "{{ game.uuid }}"), function(message) {
   game.status = "dealt";
-  window.game.version = message.details.version;
+  if (window.game.version < message.details.version) {
+    window.game.version = message.details.version;
+  }
   for (gamePlayer in gamePlayerPkToGamePlayer) {
     greyOutPlayerVideo(gamePlayer);
     gamePlayerPkToGamePlayer[gamePlayer].status = "active";
@@ -60,8 +62,10 @@ socket.on(sprintf("deal/%s", "{{ game.uuid }}"), function(message) {
 });
 
 socket.on(sprintf("drop/%s", "{{ game.uuid }}"), function(message) {
-  window.game.version = message.details.version;
-  processDrop(message.senderPk, message.avatar, message.details.cards);
+  if (window.game.version < message.details.version) {
+    window.game.version = message.details.version;
+  }
+  processDrop(message.senderPk, message.avatar || DEFAULT_PROFILE_PIC, message.details.cards);
   updateGameStatus(
       message.details.turnGamePlayer,
       message.details.leadGamePlayer,
@@ -73,18 +77,24 @@ socket.on(sprintf("drop/%s", "{{ game.uuid }}"), function(message) {
 
 socket.on(sprintf("dry/%s", "{{ game.uuid }}"), function(message) {
   console.log(message);
-  window.game.version = message.details.version;
+  if (window.game.version < message.details.version) {
+    window.game.version = message.details.version;
+  }
   processDry(message.senderPk, message.avatar, message.details.cards, message.type);
 });
 
 socket.on(sprintf("show-dry/%s", "{{ game.uuid }}"), function(message) {
   console.log(message);
-  window.game.version = message.details.version;
+  if (window.game.version < message.details.version) {
+    window.game.version = message.details.version;
+  }
   processDry(message.senderPk, message.avatar, message.details.cards, message.type);
 });
 
 socket.on(sprintf("ready/%s", "{{ game.uuid }}"), function(message) {
-  window.game.version = message.details.version;
+  if (window.game.version < message.details.version) {
+    window.game.version = message.details.version;
+  }
   processReady(message.senderPk, message.avatar, message.details.cards, message.type);
   sendPlayToChat(message);
 });

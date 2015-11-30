@@ -23,6 +23,9 @@ exports.DropHandler = {
 
     var firstCard = playMetadata.cards[0];
     var cardInHand = hand.find(function(card) {return firstCard == card.card});
+    console.log("Here is the card I want to play: " + JSON.stringify(firstCard));
+    console.log("Here is my hand: " + JSON.stringify(hand));
+    console.log("Here is the card in hand: " + JSON.stringify(cardInHand));
     if (cardInHand == null || cardInHand == undefined || cardInHand.play == "drop") {
       return callback("You don't have that card anymore!", {});
     }

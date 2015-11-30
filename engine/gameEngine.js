@@ -53,6 +53,7 @@ exports.handlePlay = function(gamePlayerPk, game, type, metadata, models, t, cal
             handleBotPlays(gamePlayer, game, type, models, t, function (err, botPlay) {
               console.log("Done handling bot play: " + type);
               var version = game.getMetadata("version") + 1;
+              console.log("current game version after this play is: " + version);
               game.setMetadata("version", version);
               game.save(null, {transacting: t}).then(function (game) {
                 details["version"] = version;

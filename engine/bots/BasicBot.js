@@ -33,7 +33,11 @@ exports.BasicBot = {
           return card.play == "unplayed" && cards.valueOf(card.card).suit == leadCard.suit;
         });
 
-        callback("", {play: "drop", metadata: {cards: [cardToPlay]}});
+        cardToPlay = cardToPlay || hand.find(function(card) {
+          return card.play == "unplayed";
+        });
+
+        callback("", {play: "drop", metadata: {cards: [cardToPlay.card]}});
       } else {
         console.log("Could not reply to play: " + JSON.stringify(lastPlay));
         callback("", null);

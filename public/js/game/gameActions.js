@@ -28,12 +28,24 @@ var versionChecker = setInterval(function() {
     gamePk: "{{ game.uuid }}",
   })
   .success(function(data) {
-    if (data.version !== window.game.version) {
+    if (data.version > window.game.version) {
+      alert("updating game version from: " + window.game.version + "to: " + data.version);
       console.log("forced refresh");
-      arrangePlayers();
-      processDrops();
-      getCards(game.session);
-      window.game.version = data.version;
+
+      $.post("/getGame/", {
+        _csrf: "{{ csrfToken }}",
+        gamePlayerPk: "{{ gamePlayer.uuid }}",
+        gamePk: "{{ game.uuid }}"})
+      .success(function(game){
+        window.game = game;
+        updateGameStatus(game.turnGamePlayer, game.leadGamePlayer, game.dealer, game.leadCard);
+        arrangePlayers();
+        processDrops();
+        window.game.version = data.version;
+      })
+      .error(function(err){
+        alert(err.responseText);
+      });
     }
   })
   .error(function(err) {
@@ -43,7 +55,6 @@ var versionChecker = setInterval(function() {
 }, 5000);
 
 arrangePlayers();
-
 processDrops();
 getCards(game.session);
 $("#drop").append($("#board"));

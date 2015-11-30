@@ -100,6 +100,12 @@ exports.playGame = function(req, res, models, io) {
   });
 };
 
+exports.getGame = gamePlayerDependentWithoutTransaction(
+    ["game", "game.gamePlayers", "game.gamePlayers.player", "game.plays"], function(req, res, models, io, gamePlayer) {
+      res.send(gamePlayer.related("game"));
+    }
+);
+
 exports.joinGame = function(req, res, models, io, t) {
   var playerId = req.user.id;
   var gamePk = req.body.gameId;
@@ -116,21 +122,23 @@ exports.joinGame = function(req, res, models, io, t) {
         player_uuid: req.user.get("uuid"),
         uuid: uuid.v4()
       }).save(null, {transacting: t}).then(function (gamePlayer) {
-        var gamePlayerPk = gamePlayer.get("uuid");
-        engine.handlePlay(gamePlayerPk, game, "join", {}, models, t, function(err, result) {
-          if (!err) {
-            t.commit();
-            gamePlayer.set("player", req.user);
-            sockets.broadcastMessage(io, 'room change', game.get("uuid"), {
-              present: true,
-              details: result,
-              gamePlayer: gamePlayer.toJSON(),
-            });
-            res.send({gameId: gamePk});
-          } else {
-            t.rollback();
-            res.send(500, "Unable to join Game " + JSON.stringify(err));
-          }
+        game.refresh({withRelated: ["gamePlayers"], transacting: t}).then(function(game) {
+          var gamePlayerPk = gamePlayer.get("uuid");
+          engine.handlePlay(gamePlayerPk, game, "join", {}, models, t, function(err, result) {
+            if (!err) {
+              t.commit();
+              gamePlayer.set("player", req.user);
+              sockets.broadcastMessage(io, 'room change', game.get("uuid"), {
+                present: true,
+                details: result,
+                gamePlayer: gamePlayer.toJSON(),
+              });
+              res.send({gameId: gamePk});
+            } else {
+              t.rollback();
+              res.send(500, "Unable to join Game " + JSON.stringify(err));
+            }
+          });
         });
       }).catch(function (err) {
         t.rollback();
@@ -184,7 +192,7 @@ exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"
         });
         if (details.botPlay) {
           console.log("Bot play: " + JSON.stringify(details.botPlay));
-          sockets.broadcastMessage(io, b.type, b.gamePk, {
+          sockets.broadcastMessage(io, details.botPlay.type, b.gamePk, {
             details: details.botPlay.details,
             sender: "Bot",
             type: details.botPlay.type,
@@ -198,7 +206,8 @@ exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"
   }
 );
 
-exports.getCards = gamePlayerDependent(["game", "game.gamePlayers"], function(req, res, models, io, t, gamePlayer) {
+exports.getCards = gamePlayerDependentWithoutTransaction(["game", "game.gamePlayers"],
+    function(req, res, models, io, gamePlayer) {
   var hands = {}
   var game = gamePlayer.related("game");
   game.related("gamePlayers").forEach(function(gamePlayer) {
@@ -212,7 +221,6 @@ exports.getCards = gamePlayerDependent(["game", "game.gamePlayers"], function(re
     }
     hands[gamePlayer.get("uuid")] = gamePlayerHand;
   });
-  t.commit();
   res.send(hands);
 });
 
@@ -240,5 +248,24 @@ function gamePlayerDependent(relatedFields, callback) {
           callback(req, res, models, io, t, gamePlayer);
         }
       });
+  };
+}
+
+function gamePlayerDependentWithoutTransaction(relatedFields, callback) {
+  return function(req, res, models, io) {
+    var playerId = req.user.id;
+    var gamePlayerPk = req.body.gamePlayerPk;
+    var gamePk = req.body.gamePk;
+
+    models.GamePlayer.where({uuid: gamePlayerPk}).fetch({withRelated: relatedFields}).then(
+        function(gamePlayer) {
+          if (!gamePlayer) {
+            res.send(500, util.format("%s is not a member of this game", gamePk));
+          } else if (gamePlayer.get("player_id") != playerId) {
+            res.send(500, util.format("Not allowed to play for: %s", gamePlayerPk));
+          } else {
+            callback(req, res, models, io, gamePlayer);
+          }
+        });
   };
 }
