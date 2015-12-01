@@ -190,8 +190,7 @@ exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"
           senderPk: gamePlayer.get("uuid"),
           avatar: b.avatar
         });
-        if (details.botPlay) {
-          console.log("Bot play: " + JSON.stringify(details.botPlay));
+        while (details.botPlay != null) {
           sockets.broadcastMessage(io, details.botPlay.type, b.gamePk, {
             details: details.botPlay.details,
             sender: "Bot",
@@ -199,6 +198,7 @@ exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"
             time: new Date().getTime(),
             senderPk: details.botPlay.botPlayer,
           });
+          details = details.botPlay.details;
         }
         res.send(200);
       }

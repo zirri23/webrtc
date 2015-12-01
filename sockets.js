@@ -43,6 +43,7 @@ function onAuthorizeFail(data, message, error, accept){
 }
 
 exports.broadcastMessage = function(io, type, filter, data) {
+  console.log("Receiving message of type: " + type + " on filter: " + JSON.stringify(filter) + " : " + JSON.stringify(data));
   io.sockets.emit(util.format("%s/%s", type, filter), data);
 };
 

@@ -9,9 +9,11 @@ exports.BasicBot = {
       });
 
       var lastPlay = plays[plays.length - 1];
-      console.log("The last play was: " + JSON.stringify(lastPlay));
       if (lastPlay.getMetadata("type") == "ready") {
         console.log("Replying to a ready play");
+        if (botPlayer.getMetadata("status") == "ready") {
+          return callback(null, null);
+        }
         callback("", {play: "ready"});
       } else if (lastPlay.getMetadata("type") == "init") {
         if (game.getMetadata("turnGamePlayer") == botPlayer.get("uuid")) {
@@ -24,11 +26,13 @@ exports.BasicBot = {
       } else if (lastPlay.getMetadata("type") == "drop") {
         console.log("Replying to a play play");
         if (game.getMetadata("turnGamePlayer") !== botPlayer.get("uuid")) {
-          callback("", null);
+          return callback("", null);
         }
         var leadCard = cards.valueOf(game.getMetadata("leadCard"));
 
         var hand = botPlayer.getMetadata("hands")[game.getMetadata("session")];
+        console.log(game.getMetadata("session"));
+        console.log(botPlayer.getAllMetadata());
         var cardToPlay = hand.find(function(card) {
           return card.play == "unplayed" && cards.valueOf(card.card).suit == leadCard.suit;
         });
