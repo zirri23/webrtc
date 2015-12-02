@@ -11,6 +11,9 @@ exports.BasicBot = {
       var lastPlay = plays[plays.length - 1];
       if (lastPlay.getMetadata("type") == "ready") {
         console.log("Replying to a ready play");
+        if (game.getMetadata("status") == "ready" && game.getMetadata("turnGamePlayer") == botPlayer.get("uuid")) {
+          return processDrop();
+        }
         if (botPlayer.getMetadata("status") == "ready") {
           return callback(null, null);
         }
@@ -25,30 +28,30 @@ exports.BasicBot = {
         }
       } else if (lastPlay.getMetadata("type") == "drop") {
         console.log("Replying to a play play");
-        if (game.getMetadata("status") == "undealt") {
-          return callback("", null);
-        }
-        if (game.getMetadata("turnGamePlayer") !== botPlayer.get("uuid")) {
-          return callback("", null);
-        }
-        var leadCard = cards.valueOf(game.getMetadata("leadCard"));
-
-        var hand = botPlayer.getMetadata("hands")[game.getMetadata("session")];
-        console.log(game.getMetadata("session"));
-        console.log(botPlayer.getAllMetadata());
-        var cardToPlay = hand.find(function(card) {
-          return card.play == "unplayed" && cards.valueOf(card.card).suit == leadCard.suit;
-        });
-
-        cardToPlay = cardToPlay || hand.find(function(card) {
-          return card.play == "unplayed";
-        });
-
-        callback("", {play: "drop", metadata: {cards: [cardToPlay.card]}});
+        return processDrop();
       } else {
         console.log("Could not reply to play: " + JSON.stringify(lastPlay));
         callback("", null);
       }
     });
+    function processDrop() {
+      if (game.getMetadata("status") !== "ready") {
+        return callback("", null);
+      }
+      if (game.getMetadata("turnGamePlayer") !== botPlayer.get("uuid")) {
+        return callback("", null);
+      }
+      var leadCard = cards.valueOf(game.getMetadata("leadCard"));
+      var hand = botPlayer.getMetadata("hands")[game.getMetadata("session")];
+      console.log(game.getMetadata("session"));
+      console.log(botPlayer.getAllMetadata());
+      var cardToPlay = hand.find(function (card) {
+        return card.play == "unplayed" && cards.valueOf(card.card).suit == leadCard.suit;
+      });
+      cardToPlay = cardToPlay || hand.find(function (card) {
+            return card.play == "unplayed";
+          });
+      return callback("", {play: "drop", metadata: {cards: [cardToPlay.card]}});
+    }
   }
 }

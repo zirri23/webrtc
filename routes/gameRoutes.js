@@ -192,7 +192,7 @@ exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"
         });
         var count = 0;
         while (details.botPlay != null) {
-          setTimeout(function(details) {
+          setTimeout(function(details, count) {
             sockets.broadcastMessage(io, details.botPlay.type, b.gamePk, {
               details: details.botPlay.details,
               sender: "Bot",
@@ -200,7 +200,7 @@ exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"
               time: new Date().getTime(),
               senderPk: details.botPlay.botPlayer,
             });
-          }, 2000, details);
+          }, 2000 * ++count, details);
           details = details.botPlay.details;
         }
         res.send(200);

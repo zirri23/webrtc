@@ -31,6 +31,10 @@ exports.DealHandler = {
     for (var i = 0; i < activeGamePlayers.length; i++) {
       if (activeGamePlayers[i].id == gamePlayer.id) {
         var nextIndex = (i + 1) % activeGamePlayers.length;
+        var count = i;
+        while (activeGamePlayers[nextIndex].getMetadata("isBot")) {
+          nextIndex = (++count + 1) % activeGamePlayers.length;
+        }
         gameMetadata.dealer = activeGamePlayers[nextIndex].get("uuid");
       }
       activeGamePlayers[i].setMetadata("status", "active");
