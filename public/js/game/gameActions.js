@@ -74,7 +74,7 @@ function updateGameStatus(turnGamePlayer, leadGamePlayer, dealer, leadCard, isSe
   }
   $(".lead-card").hide();
   $(".turn-card").hide();
-  $(sprintf("#%s", leadGamePlayer || turnGamePlayer)).find(".lead-card").show("slow");
+  $(sprintf("#%s", leadGamePlayer)).find(".lead-card").show("slow");
   $(sprintf("#%s", turnGamePlayer)).find(".turn-card").show("slow");
 }
 

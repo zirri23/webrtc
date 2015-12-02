@@ -190,14 +190,17 @@ exports.sendPlay = gamePlayerDependent(["game", "game.gamePlayers", "game.plays"
           senderPk: gamePlayer.get("uuid"),
           avatar: b.avatar
         });
+        var count = 0;
         while (details.botPlay != null) {
-          sockets.broadcastMessage(io, details.botPlay.type, b.gamePk, {
-            details: details.botPlay.details,
-            sender: "Bot",
-            type: details.botPlay.type,
-            time: new Date().getTime(),
-            senderPk: details.botPlay.botPlayer,
-          });
+          setTimeout(function(details) {
+            sockets.broadcastMessage(io, details.botPlay.type, b.gamePk, {
+              details: details.botPlay.details,
+              sender: "Bot",
+              type: details.botPlay.type,
+              time: new Date().getTime(),
+              senderPk: details.botPlay.botPlayer,
+            });
+          }, 2000, details);
           details = details.botPlay.details;
         }
         res.send(200);

@@ -25,6 +25,9 @@ exports.BasicBot = {
         }
       } else if (lastPlay.getMetadata("type") == "drop") {
         console.log("Replying to a play play");
+        if (game.getMetadata("status") == "undealt") {
+          return callback("", null);
+        }
         if (game.getMetadata("turnGamePlayer") !== botPlayer.get("uuid")) {
           return callback("", null);
         }

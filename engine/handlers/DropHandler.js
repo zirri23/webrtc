@@ -53,7 +53,7 @@ exports.DropHandler = {
 
     var roundComplete = isRoundComplete(gamePlayerPk, activeGamePlayers, session);
     determineLeaderAndNextTurn(roundComplete, activeGamePlayers, gamePlayerPk, gameMetadata, cardInHand.card);
-    var sessionComplete = isSessionComplete(roundComplete, hand);
+    var sessionComplete = isSessionComplete(roundComplete, activeGamePlayers, session);
     var leadGamePlayer = processScores(session, game, gameMetadata, activeGamePlayers, sessionComplete);
 
     game.setAllMetadata(gameMetadata);
@@ -134,14 +134,17 @@ function isRoundComplete(gamePlayerPk, activeGamePlayers, session) {
   return true;
 }
 
-function isSessionComplete(isRoundComplete, hand) {
+function isSessionComplete(isRoundComplete, activeGamePlayers, session) {
   if (!isRoundComplete) {
     return false;
   }
-  for (var i = 0; i < hand.length; i++) {
-    var card = hand[i];
-    if (card.play !== "drop") {
-      return false;
+  for(var j = 0; j < activeGamePlayers.length; j++) {
+    var hand = activeGamePlayers[j].getMetadata("hands")[session];
+    for (var i = 0; i < hand.length; i++) {
+      var card = hand[i];
+      if (card.play !== "drop") {
+        return false;
+      }
     }
   }
   return true;
