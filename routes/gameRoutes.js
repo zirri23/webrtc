@@ -5,9 +5,7 @@ var engine = require("../engine/gameEngine");
 var BOTS = engine.BOTS;
 
 function createGameHelper(req, res, models, io, t, callback) {
-  console.log("Inside helper");
   models.Game.forge({creator: req.user.id, uuid: uuid.v4()}).save(null, {transacting: t}).then(function (game) {
-    console.log("Game saved");
     models.GamePlayer.forge({
       game_id: game.get("id"),
       game_uuid: game.get("uuid"),
@@ -15,9 +13,7 @@ function createGameHelper(req, res, models, io, t, callback) {
       player_uuid: req.user.get("uuid"),
       uuid: uuid.v4()
     }).save(null, {transacting: t}).then(function(gamePlayer) {
-      console.log("GamePlayer saved");
       gamePlayer.refresh({withRelated: ["game", "game.gamePlayers"], transacting: t}).then(function(gamePlayer) {
-        console.log("GamePlayer refreshed");
         callback(gamePlayer);
       });
     }).catch(function(err) {
@@ -50,10 +46,8 @@ exports.createGame = function(req, res, models, io, t) {
 
 exports.createSinglePlayerGame = function(req, res, models, io, t) {
   createGameHelper(req, res, models, io, t, function(gamePlayer) {
-    console.log("Helper done");
     var game = gamePlayer.related("game");
     engine.createBot(game, BOTS.BASIC, models, t, function(err, result) {
-      console.log("Bot created");
       if (err) {
         t.rollback();
         res.send(500, "Unable to create Bot " + JSON.stringify(err));
@@ -61,14 +55,12 @@ exports.createSinglePlayerGame = function(req, res, models, io, t) {
       }
       var gamePlayerPk = gamePlayer.get("uuid");
       engine.handlePlay(gamePlayerPk, gamePlayer.related("game"), "init", {}, models, t, function(err, result) {
-        console.log("Inited");
         if (err) {
           t.rollback();
           res.send(500, "Unable to create GamePlayer " + JSON.stringify(err));
           return;
         }
         engine.handlePlay(gamePlayerPk, gamePlayer.related("game"), "join", {}, models, t, function(err, result) {
-          console.log("Joined");
           if (!err) {
             t.commit();
             res.send({gameId: game.get("uuid")});
